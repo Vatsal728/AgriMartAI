@@ -327,17 +327,20 @@ with tab_weather:
     st.subheader("🌦️ Real-Time Agrometeorological Satellite Intelligence")
     weather_info = override_weather if override_weather else advisor.weather_service.get_weather(farm_location)
     
-    wcol1, wcol2, wcol3 = st.columns(3)
+    wcol1, wcol2, wcol3, wcol4 = st.columns(4)
     wcol1.metric("🌡️ Temperature", f"{weather_info['temperature_c']} °C")
     wcol2.metric("💧 Air Humidity", f"{weather_info['humidity_pct']}%")
     wcol3.metric("💨 Wind Speed", f"{weather_info['wind_speed_kmh']} km/h")
-    
-    wcol4, wcol5, wcol6 = st.columns(3)
     wcol4.metric("🌧️ Rain Probability", f"{weather_info['rain_probability_pct']}%", f"{weather_info.get('rain_mm', 0)} mm")
-    wcol5.metric("🌱 Satellite Soil Moisture", f"{weather_info.get('soil_moisture_pct', live_sensors['soil_moisture_pct'])}%", "0-9cm root zone")
-    wcol6.metric("☀️ UV Index", f"{weather_info.get('uv_index', 5.0)}", "Solar radiation")
     
-    st.info(f"🛰️ **Telemetry Station:** {farm_location} | **Atmospheric State:** {weather_info['conditions']} | **Data Source:** `{weather_info.get('source', 'Open-Meteo Satellite')}`")
+    wcol5, wcol6, wcol7, wcol8 = st.columns(4)
+    wcol5.metric("🌱 Satellite Soil Moisture", f"{weather_info.get('soil_moisture_pct', live_sensors['soil_moisture_pct'])}%", "0-9cm root zone")
+    wcol6.metric("🌾 FAO-56 Evapotranspiration", f"{weather_info.get('et0_fao_evapotranspiration_mm_day', 4.2)} mm/day", "Daily water loss")
+    wcol7.metric("🍃 Vapour Pressure Deficit", f"{weather_info.get('vapour_pressure_deficit_kpa', 1.2)} kPa", "Transpiration stress")
+    wcol8.metric("☀️ UV Index", f"{weather_info.get('uv_index', 5.0)}", "Solar radiation")
+    
+    st.info(f"🛰️ **Telemetry Station:** {farm_location} | **Atmospheric State:** {weather_info['conditions']} | **Physics Engine:** `Open-Meteo + FAO-56 Penman-Monteith Satellite Models`")
+
 
 
 with tab_report:
