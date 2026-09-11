@@ -103,7 +103,10 @@ from src.advisor.weather_service import WeatherService, geocode_location, fetch_
 advisor = AgenticAdvisor()
 
 # Sidebar: Controls & IoT Feed
-st.sidebar.image("https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400", use_container_width=True)
+try:
+    st.sidebar.image("https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400", use_container_width=True)
+except Exception:
+    st.sidebar.image("https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400")
 st.sidebar.title("🚜 Farm Telemetry & Field Controls")
 
 soil_type = st.sidebar.selectbox("🌱 Soil Texture", ["Loamy", "Clay", "Sandy", "Black Cotton Soil"])
