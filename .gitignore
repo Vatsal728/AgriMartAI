@@ -1,0 +1,41 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Model weights and artifacts
+models/*.pt
+models/*.pth
+models/*.h5
+runs/
+*.onnx
+vector_store/
+
+# Large Datasets & Archives
+data/raw_images/
+data/plantvillage/
+plant_village/
+plant_village.zip
+archive.zip
+*.zip
+*.tar.gz
+*.7z
+
+# Environment & API keys
+.env
+.env.local
+.kaggle/
+kaggle.json
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+

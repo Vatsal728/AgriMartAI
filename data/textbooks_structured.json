@@ -1,0 +1,301 @@
+{
+  "classes": [
+    {
+      "id": 0,
+      "crop": "Cassava",
+      "disease_name": "Cassava Bacterial Blight",
+      "symptoms": "Water-soaked angular leaf spots, leaf blighting, wilting of young shoots, and gum exudation on stems and petioles.",
+      "pathogen": "Xanthomonas axonopodis pv. manihotis (Bacterial)",
+      "organic_treatment": "Apply copper oxychloride (2.5g/L) or Bordeaux mixture. Prune and burn infected shoots immediately. Use neem-based botanical formulations.",
+      "chemical_treatment": "Foliar spray with Streptocycline (100-200 ppm) mixed with Copper Oxychloride (0.2%).",
+      "prevention": "Use certified disease-free stem cuttings, rotate crops with non-hosts (maize or legumes), and disinfect pruning tools with 70% alcohol.",
+      "weather_action_rule": "Avoid overhead sprinkler irrigation when humidity exceeds 85% to prevent bacterial splash dispersion."
+    },
+    {
+      "id": 1,
+      "crop": "Cassava",
+      "disease_name": "Cassava Brown Leaf Spot",
+      "symptoms": "Small brown circular to angular spots with dark distinct margins on mature lower leaves, causing premature defoliation.",
+      "pathogen": "Passalora henningsii (Fungal)",
+      "organic_treatment": "Spray wettable sulfur (2g/L) or potassium bicarbonate. Ensure plant spacing for sunlight penetration.",
+      "chemical_treatment": "Foliar application of Mancozeb 75% WP (2.5g/L) or Carbendazim 50% WP (1g/L).",
+      "prevention": "Ensure wide inter-row spacing (1m x 1m), remove and destroy lower diseased leaves, and maintain balanced potassium fertilization.",
+      "weather_action_rule": "Delay fungicide spraying if heavy rain (>15mm) is forecasted within the next 4 hours."
+    },
+    {
+      "id": 2,
+      "crop": "Cassava",
+      "disease_name": "Cassava Healthy",
+      "symptoms": "Vibrant green palmate foliage without spots, chlorosis, curling, or stem lesions.",
+      "pathogen": "None (Healthy Crop)",
+      "organic_treatment": "Apply balanced organic compost and vermicompost every 45 days.",
+      "chemical_treatment": "No chemical intervention needed. Maintain standard NPK (10:10:20) schedule.",
+      "prevention": "Regular field scouting, weed control, and preventive biocontrol sprays of Trichoderma viride.",
+      "weather_action_rule": "Maintain standard irrigation intervals based on soil tensiometer readings."
+    },
+    {
+      "id": 3,
+      "crop": "Cassava",
+      "disease_name": "Cassava Mosaic",
+      "symptoms": "Severe chlorotic mosaic pattern on leaves, leaf distortion, stunted growth, and reduced root tuber yield.",
+      "pathogen": "Cassava mosaic virus (CMV) transmitted by whitefly (Bemisia tabaci)",
+      "organic_treatment": "Spray yellow sticky traps (15 traps/acre) to control whitefly vector. Spray 5% neem seed kernel extract (NSKE).",
+      "chemical_treatment": "Control whitefly vector with Imidacloprid 17.8% SL (0.5ml/L) or Thiamethoxam 25% WG (0.3g/L).",
+      "prevention": "Rogue and burn infected plants immediately. Plant certified CMV-resistant cultivars (e.g., TME 419).",
+      "weather_action_rule": "Hot dry weather (>32°C) accelerates whitefly reproduction; increase vector scouting frequency."
+    },
+    {
+      "id": 4,
+      "crop": "Cassava",
+      "disease_name": "Cassava Root Rot",
+      "symptoms": "Soft, discolored, foul-smelling rotting tubers, yellowing foliage, sudden wilting, and collapse of above-ground plant.",
+      "pathogen": "Phytophthora spp., Fusarium oxysporum, Pythium spp. (Fungal/Oomycete)",
+      "organic_treatment": "Drench root zone with Trichoderma harzianum bio-fungicide (10g/L). Improve soil drainage with ridge planting.",
+      "chemical_treatment": "Soil drenching with Metalaxyl 8% + Mancozeb 64% WP (2.5g/L) or Ridomil Gold.",
+      "prevention": "Avoid waterlogging; plant on raised ridges or mounds (30-40cm). Practice 3-year crop rotation.",
+      "weather_action_rule": "Halt irrigation immediately if soil moisture exceeds 80% and rain is expected."
+    },
+    {
+      "id": 5,
+      "crop": "Corn",
+      "disease_name": "Corn Brown Spots",
+      "symptoms": "Small, yellowish-to-brown spots on leaf blades, sheaths, and stalks, often coalescing into chocolate brown bands.",
+      "pathogen": "Physoderma maydis (Fungal)",
+      "organic_treatment": "Bio-agent application of Bacillus subtilis and foliar compost tea.",
+      "chemical_treatment": "Spray Azoxystrobin (18.2%) + Difenoconazole (11.4%) SC at 1ml/L or Pyraclostrobin.",
+      "prevention": "Deep tillage to bury crop residue, use tolerant corn hybrids, and ensure adequate crop nutrition.",
+      "weather_action_rule": "Favorable during warm, humid conditions with free water in the whorl."
+    },
+    {
+      "id": 6,
+      "crop": "Corn",
+      "disease_name": "Corn Charcoal",
+      "symptoms": "Internal decay of the lower stalk with shredded appearance and numerous tiny black microsclerotia resembling charcoal dust.",
+      "pathogen": "Macrophomina phaseolina (Fungal)",
+      "organic_treatment": "Soil enrichment with farmyard manure and Trichoderma bio-formulations.",
+      "chemical_treatment": "Seed treatment with Thiram 75% WP (3g/kg seed) or Carbendazim (2g/kg seed).",
+      "prevention": "Maintain adequate soil moisture during post-flowering to relieve plant drought stress.",
+      "weather_action_rule": "High risk during extended hot (>35°C), drought-stressed periods; schedule emergency light irrigation."
+    },
+    {
+      "id": 7,
+      "crop": "Corn",
+      "disease_name": "Corn Chlorotic Leaf Spot",
+      "symptoms": "Pale yellow, elongated chlorotic streaks or spots running parallel to the leaf veins.",
+      "pathogen": "Viral / Physiological chlorosis or early fungal infection",
+      "organic_treatment": "Foliar application of micronutrient mixture (Zinc, Iron, Magnesium) plus sea-weed extract.",
+      "chemical_treatment": "Zinc sulphate (0.5%) + Ferrous sulphate (0.2%) foliar spray.",
+      "prevention": "Soil testing to rectify micronutrient deficiencies; control aphid and leafhopper vectors.",
+      "weather_action_rule": "Monitor soil pH; alkaline soils (pH > 7.8) induce micronutrient lockup."
+    },
+    {
+      "id": 8,
+      "crop": "Corn",
+      "disease_name": "Corn Gray leaf spot",
+      "symptoms": "Distinct rectangular, tan-to-gray lesions restricted between leaf veins with sharp parallel edges.",
+      "pathogen": "Cercospora zeae-maydis (Fungal)",
+      "organic_treatment": "Foliar spray of Potassium silicate and bio-fungicides (Trichoderma).",
+      "chemical_treatment": "Spray Pyraclostrobin + Fluxapyroxad or Azoxystrobin 23% SC (1ml/L).",
+      "prevention": "Plant resistant hybrids, practice residue management (minimum 2-year non-host rotation).",
+      "weather_action_rule": "Thrives in overcast conditions with >90% RH for over 12 hours."
+    },
+    {
+      "id": 9,
+      "crop": "Corn",
+      "disease_name": "Corn Healthy",
+      "symptoms": "Broad, deep green leaves with strong erect stalks and healthy cob formation without discoloration.",
+      "pathogen": "None (Healthy Crop)",
+      "organic_treatment": "Apply balanced vermicompost and Azotobacter / PSB bio-fertilizers.",
+      "chemical_treatment": "Follow recommended NPK dosage (120:60:40 kg/ha) in split applications.",
+      "prevention": "Routine weeding, insect scouting for fall armyworm, and proper water management.",
+      "weather_action_rule": "Maintain optimal irrigation schedule based on tasseling and grain-filling stages."
+    },
+    {
+      "id": 10,
+      "crop": "Corn",
+      "disease_name": "Corn Insects Damages",
+      "symptoms": "Shot-holes in whorl leaves, ragged leaf margins, sawdust-like frass inside whorls (Fall Armyworm / Stem Borer).",
+      "pathogen": "Spodoptera frugiperda / Chilo partellus (Insect Pests)",
+      "organic_treatment": "Release Trichogramma pretiosum parasitoids (50,000/acre). Spray Bacillus thuringiensis (Bt) @ 2g/L or Neem oil (1500 ppm).",
+      "chemical_treatment": "Whorl application of Chlorantraniliprole 18.5% SC (0.4ml/L) or Emamectin Benzoate 5% SG (0.4g/L).",
+      "prevention": "Install pheromone traps (5 traps/acre), intercrop with desmodium/push-pull strategy.",
+      "weather_action_rule": "Scout actively during warm evenings when adult moth flight activity peaks."
+    },
+    {
+      "id": 11,
+      "crop": "Corn",
+      "disease_name": "Corn Mildew",
+      "symptoms": "Pale yellow chlorotic striping on leaves with downy white fungal growth on the lower surface in morning dew.",
+      "pathogen": "Peronosclerospora sorghi (Downy Mildew / Oomycete)",
+      "organic_treatment": "Foliar spray with Copper Hydroxide (2g/L) and remove systemic infected plants.",
+      "chemical_treatment": "Seed treatment with Metalaxyl-M (Apron XL) @ 2ml/kg, foliar spray of Metalaxyl-Mancozeb @ 2.5g/L.",
+      "prevention": "Use resistant maize hybrids and avoid sowing near sorghum fields.",
+      "weather_action_rule": "Dew-laden cool nights (18-22°C) followed by humid mornings trigger sporulation."
+    },
+    {
+      "id": 12,
+      "crop": "Corn",
+      "disease_name": "Corn Purple Discoloration",
+      "symptoms": "Intense reddish-purple coloration on leaf tips, margins, and lower stalks, especially in young seedlings.",
+      "pathogen": "Phosphorus deficiency induced by cold soil or root damage",
+      "organic_treatment": "Apply rock phosphate with Phosphate Solubilizing Bacteria (PSB). Soil warming with shallow hoeing.",
+      "chemical_treatment": "Foliar spray of 19:19:19 (N:P:K) or DAP (2%) solution.",
+      "prevention": "Incorporate starter phosphorus fertilizer near seed row during sowing.",
+      "weather_action_rule": "Cold soils (<15°C) restrict root phosphorus uptake; symptoms usually subside as temperatures rise."
+    },
+    {
+      "id": 13,
+      "crop": "Corn",
+      "disease_name": "Corn Smut",
+      "symptoms": "Large, fleshy, white-to-silvery galls on tassels, ears, stalks, and leaves that rupture to release black powdery spores.",
+      "pathogen": "Ustilago maydis (Fungal)",
+      "organic_treatment": "Remove and incinerate galls before the outer membrane breaks and releases black chlamydospores.",
+      "chemical_treatment": "Seed dressing with Carboxin 37.5% + Thiram 37.5% DS (2g/kg seed).",
+      "prevention": "Avoid mechanical damage to stalks and roots during cultivation. Maintain balanced nitrogen.",
+      "weather_action_rule": "Wounds created by hailstorms or insect damage provide entry points."
+    },
+    {
+      "id": 14,
+      "crop": "Corn",
+      "disease_name": "Corn Streak",
+      "symptoms": "Narrow, discontinuous chlorotic streaks along leaf veins, starting as minute translucent spots on young leaves.",
+      "pathogen": "Maize streak virus (MSV) transmitted by leafhoppers (Cicadulina spp.)",
+      "organic_treatment": "Spray botanical insect repellent (Neem 1500 ppm @ 3ml/L) to suppress leafhopper vector.",
+      "chemical_treatment": "Seed treatment with Imidacloprid 70% WS (5g/kg seed). Foliar spray of Thiamethoxam 25% WG (0.3g/L).",
+      "prevention": "Plant MSV-resistant hybrids; avoid planting downwind from older infected cereal crops.",
+      "weather_action_rule": "High leafhopper migrations occur after prolonged dry spells followed by rain."
+    },
+    {
+      "id": 15,
+      "crop": "Corn",
+      "disease_name": "Corn Stripe",
+      "symptoms": "Broad chlorotic stripes along veins, apical bending, stunting, and failure of tassel emergence.",
+      "pathogen": "Maize stripe virus (MSpV) transmitted by corn planthopper (Peregrinus maidis)",
+      "organic_treatment": "Application of entomopathogenic fungus Beauveria bassiana @ 5g/L.",
+      "chemical_treatment": "Foliar spray of Dinotefuran 20% SG (0.5g/L) or Pymetrozine 50% WG.",
+      "prevention": "Synchronized regional planting and systematic eradication of grassy weed hosts.",
+      "weather_action_rule": "Plan irrigation to avoid excessive humidity favoring planthopper swarms."
+    },
+    {
+      "id": 16,
+      "crop": "Corn",
+      "disease_name": "Corn Violet Decoloration",
+      "symptoms": "Abnormal deep violet-to-bronze pigmentation on foliage, often combined with stunted root growth.",
+      "pathogen": "Severe abiotic stress / Aluminum toxicity / Extreme phosphorus immobilization in acidic soils",
+      "organic_treatment": "Apply agricultural lime or dolomite (1-2 tons/ha) to adjust acidic soil pH.",
+      "chemical_treatment": "Foliar application of mono-potassium phosphate (00:52:34) @ 5g/L.",
+      "prevention": "Conduct soil pH testing; maintain soil pH between 6.0 and 7.0 with regular liming.",
+      "weather_action_rule": "High water table exacerbates root anaerobic stress in acidic soils."
+    },
+    {
+      "id": 17,
+      "crop": "Corn",
+      "disease_name": "Corn Yellow Spots",
+      "symptoms": "Circular to oval bright yellow spots on leaf blades with yellow halos.",
+      "pathogen": "Curvularia lunata / Early stage foliar fungal spotting",
+      "organic_treatment": "Spray Pseudomonas fluorescens bio-formulation (10g/L).",
+      "chemical_treatment": "Foliar spray of Propiconazole 25% EC (1ml/L) or Chlorothalonil 75% WP (2g/L).",
+      "prevention": "Balanced potassium fertilization and clean cultivation.",
+      "weather_action_rule": "Spray when wind speed is <10 km/h to minimize drift."
+    },
+    {
+      "id": 18,
+      "crop": "Corn",
+      "disease_name": "Corn Yellowing",
+      "symptoms": "V-shaped yellowing starting from leaf tips moving down the midrib of older leaves (Nitrogen Deficiency).",
+      "pathogen": "Nutritional deficiency (Nitrogen / Iron chlorosis) or waterlogging",
+      "organic_treatment": "Apply decomposed cow dung manure / compost slurry and liquid bio-fertilizer (Azospirillum).",
+      "chemical_treatment": "Top-dressing of Urea (40-50 kg/ha) or foliar spray of 2% Urea solution.",
+      "prevention": "Split application of nitrogen at basal, knee-high, and tasseling stages.",
+      "weather_action_rule": "Heavy rains cause nitrogen leaching; reapply small split dose following heavy downpours."
+    },
+    {
+      "id": 19,
+      "crop": "Corn",
+      "disease_name": "Corn leaf blight",
+      "symptoms": "Long, elliptical, grayish-green to tan lesions (cigar-shaped) on leaves, coalescing to cause complete foliage burn.",
+      "pathogen": "Exserohilum turcicum (Northern Corn Leaf Blight - NCLB)",
+      "organic_treatment": "Foliar application of Trichoderma viride (10g/L) and copper hydroxide (2g/L).",
+      "chemical_treatment": "Foliar spray with Mancozeb 75% WP (2.5g/L) or Azoxystrobin 18.2% + Difenoconazole 11.4% SC (1ml/L).",
+      "prevention": "Use resistant maize hybrids (Ht gene derivatives), crop rotation, and destruction of infected stubble.",
+      "weather_action_rule": "High risk during moderate temperatures (18-27°C) with persistent dew or rainy periods."
+    },
+    {
+      "id": 20,
+      "crop": "Corn",
+      "disease_name": "Corn rust leaf",
+      "symptoms": "Small, powdery, reddish-brown circular to elongate pustules (uredinia) scattered on both upper and lower leaf surfaces.",
+      "pathogen": "Puccinia sorghi (Common Rust - Fungal)",
+      "organic_treatment": "Spray sulfur 80% WDG (3g/L) or biocontrol agent Bacillus subtilis.",
+      "chemical_treatment": "Spray Tebuconazole 25.9% EC (1ml/L) or Azoxystrobin (1ml/L) at first sign of pustules.",
+      "prevention": "Plant resistant hybrids; plant early in the season to escape peak spore dispersal.",
+      "weather_action_rule": "Cool, humid weather (16-25°C, >95% RH) strongly favors rust infection."
+    },
+    {
+      "id": 21,
+      "crop": "Tomato",
+      "disease_name": "Tomato Brown Spots",
+      "symptoms": "Small, circular brown spots with concentric rings on older lower leaves, developing yellow chlorotic halos.",
+      "pathogen": "Alternaria solani (Early Blight) / Septoria lycopersici",
+      "organic_treatment": "Spray copper oxychloride (2.5g/L) or neem seed kernel extract (5%). Prune lower infected leaves up to 30cm off the ground.",
+      "chemical_treatment": "Foliar spray of Chlorothalonil 75% WP (2g/L) or Difenoconazole 25% EC (0.5ml/L).",
+      "prevention": "Stake plants, mulch soil surface with straw/plastic, avoid overhead irrigation, 3-year crop rotation.",
+      "weather_action_rule": "High humidity (>80%) and warm temperatures (24-29°C) accelerate disease progression."
+    },
+    {
+      "id": 22,
+      "crop": "Tomato",
+      "disease_name": "Tomato bacterial wilt",
+      "symptoms": "Rapid daytime wilting and green drooping of the entire plant without prior yellowing; vascular browning visible on stem cut.",
+      "pathogen": "Ralstonia solanacearum (Bacterial)",
+      "organic_treatment": "Soil drenching with Pseudomonas fluorescens (10g/L). Incorporate biochar and mustard cake into soil.",
+      "chemical_treatment": "Drenching with Streptocycline (100 ppm) + Copper Oxychloride (0.2%).",
+      "prevention": "Use grafted seedlings on resistant rootstocks, practice solarization of nursery beds, maintain acidic/neutral balance.",
+      "weather_action_rule": "Warm wet soils (>30°C) with waterlogging create explosive wilt conditions; ensure prompt drainage."
+    },
+    {
+      "id": 23,
+      "crop": "Tomato",
+      "disease_name": "Tomato blight leaf",
+      "symptoms": "Large, irregular, water-soaked, dark brownish-black lesions on leaves and stems with white fungal mold underneath in wet weather.",
+      "pathogen": "Phytophthora infestans (Late Blight - Oomycete)",
+      "organic_treatment": "Spray Bordeaux mixture (1%) or Copper Hydroxide (2g/L). Remove and destroy all blighted vines.",
+      "chemical_treatment": "Foliar spray with Cymoxanil 8% + Mancozeb 64% WP (2g/L) or Metalaxyl-M + Mancozeb (2.5g/L).",
+      "prevention": "Strictly avoid overhead irrigation; maintain 60cm plant spacing for ventilation; destroy infected plant debris.",
+      "weather_action_rule": "🚨 Critical alert: Cool wet weather (15-20°C, >90% RH) can destroy entire crop within 7-10 days. Spray preventive fungicide immediately before expected rainfall."
+    },
+    {
+      "id": 24,
+      "crop": "Tomato",
+      "disease_name": "Tomato healthy",
+      "symptoms": "Lush green foliage, uniform growth, abundant flowering and firm blemish-free fruit clusters.",
+      "pathogen": "None (Healthy Crop)",
+      "organic_treatment": "Apply Panchagavya (3%) or Seaweed extract spray every 2 weeks.",
+      "chemical_treatment": "Standard fertigation with 19:19:19 and Calcium Nitrate (to prevent blossom end rot).",
+      "prevention": "Regular trellising, pruning suckers, mulching, and routine biweekly crop scouting.",
+      "weather_action_rule": "Regulate drip irrigation to maintain 50-60% field capacity moisture."
+    },
+    {
+      "id": 25,
+      "crop": "Tomato",
+      "disease_name": "Tomato leaf mosaic virus",
+      "symptoms": "Mottling with alternating light and dark green patches, leaf blistering, 'shoestring' distortion of foliage, and stunting.",
+      "pathogen": "Tomato mosaic virus (ToMV / TMV) - Mechanically transmitted",
+      "organic_treatment": "Rogue out infected plants. Dip hands and tools in skim milk or 20% trisodium phosphate during handling.",
+      "chemical_treatment": "No chemical cure for viral infections. Apply micronutrient and humic acid foliar spray to boost plant vigor.",
+      "prevention": "Use certified virus-free seeds, avoid smoking/tobacco handling near plants, disinfect trellis wires and stakes.",
+      "weather_action_rule": "High temperatures (>30°C) intensify mosaic symptom expression."
+    },
+    {
+      "id": 26,
+      "crop": "Tomato",
+      "disease_name": "Tomato leaf yellow virus",
+      "symptoms": "Upward curling and cupping of leaf margins, severe yellow chlorosis of leaf edges, stunted bushy growth, flower abortion.",
+      "pathogen": "Tomato yellow leaf curl virus (TYLCV) transmitted by whitefly (Bemisia tabaci)",
+      "organic_treatment": "Install yellow sticky cards (20-25 cards/acre). Spray 5% neem oil emulsion with soap.",
+      "chemical_treatment": "Foliar spray for whitefly vector: Cyantraniliprole 10.26% OD (1.8ml/L) or Spiromesifen 22.9% SC (1ml/L).",
+      "prevention": "Grow seedlings under 40-mesh insect-proof nylon nets, use resistant hybrids (e.g. Ty-1/Ty-3 genes), install reflective silver mulch.",
+      "weather_action_rule": "Dry, hot weather triggers explosive whitefly proliferation; initiate vector control immediately."
+    }
+  ]
+}

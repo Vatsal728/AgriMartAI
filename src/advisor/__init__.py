@@ -1,0 +1,1 @@
+# AgriSmart AI - Advisor Package
