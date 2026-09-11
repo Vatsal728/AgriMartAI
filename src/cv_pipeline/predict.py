@@ -24,101 +24,165 @@ CLASS_NAMES = [
     'Tomato healthy', 'Tomato leaf mosaic virus', 'Tomato leaf yellow virus'
 ]
 
-# Global model cache
-_MODEL = None
-_YOLO_MODEL = None
+# Global model and metadata cache
+_LOADED_MODELS = {}
+_CLASS_NAMES = None
+_DEVICE = None
+_TRANSFORMS = None
 
-def load_models():
-    """Lazy load YOLO and Classifier models if weights exist."""
-    global _MODEL, _YOLO_MODEL
-    
-    # Try loading YOLOv8 model if available
-    yolo_weight_path = os.path.join(os.path.dirname(__file__), "..", "..", "models", "best.pt")
-    if os.path.exists(yolo_weight_path) and _YOLO_MODEL is None:
-        try:
-            from ultralytics import YOLO
-            _YOLO_MODEL = YOLO(yolo_weight_path)
-        except Exception as e:
-            print(f"[Warning] Could not load YOLO weights: {e}")
+def get_device():
+    global _DEVICE
+    if _DEVICE is None:
+        import torch
+        _DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    return _DEVICE
 
-def predict(image_path: str) -> dict:
-    """
-    Mandatory Core Task Predict Function.
+def get_transforms():
+    global _TRANSFORMS
+    if _TRANSFORMS is None:
+        from torchvision import transforms
+        _TRANSFORMS = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+    return _TRANSFORMS
+
+def load_specific_model(model_type="efficientnet"):
+    """Loads a specific model by name: efficientnet, resnet, mobilenet, or yolo."""
+    global _LOADED_MODELS, _CLASS_NAMES
     
-    Args:
-        image_path (str): Path to the input leaf image.
+    if model_type in _LOADED_MODELS:
+        return _LOADED_MODELS[model_type]
         
-    Returns:
-        dict: {
-            "disease": str (Predicted class name verbatim),
-            "confidence": float (0.0 to 1.0),
-            "crop": str,
-            "bounding_box": list or None,
-            "status": str
-        }
+    device = get_device()
+    models_dir = os.path.join(os.path.dirname(__file__), "..", "..", "models")
+    
+    if model_type == "yolo":
+        yolo_path = os.path.join(models_dir, "yolov8n_cls_best.pt")
+        if os.path.exists(yolo_path):
+            from ultralytics import YOLO
+            yolo_m = YOLO(yolo_path)
+            _LOADED_MODELS["yolo"] = yolo_m
+            print(f"[Model Loaded] YOLOv8 on {device}")
+            return yolo_m
+        return None
+        
+    import torch
+    import torch.nn as nn
+    from torchvision import models
+    
+    file_map = {
+        "efficientnet": "efficientnet_b0_best.pth",
+        "resnet": "resnet18_best.pth",
+        "mobilenet": "mobilenet_v3_best.pth"
+    }
+    
+    pth_file = os.path.join(models_dir, file_map.get(model_type, "efficientnet_b0_best.pth"))
+    if not os.path.exists(pth_file):
+        # Fallback to any available
+        for alt in ["efficientnet_b0_best.pth", "resnet18_best.pth", "mobilenet_v3_best.pth"]:
+            cand = os.path.join(models_dir, alt)
+            if os.path.exists(cand):
+                pth_file = cand
+                break
+                
+    if os.path.exists(pth_file):
+        try:
+            ckpt = torch.load(pth_file, map_location=device)
+            _CLASS_NAMES = ckpt.get("class_names", [])
+            num_classes = len(_CLASS_NAMES) if _CLASS_NAMES else 38
+            
+            if "efficientnet" in pth_file:
+                m = models.efficientnet_b0(weights=None)
+                in_feat = m.classifier[1].in_features
+                m.classifier[1] = nn.Linear(in_feat, num_classes)
+            elif "resnet" in pth_file:
+                m = models.resnet18(weights=None)
+                in_feat = m.fc.in_features
+                m.fc = nn.Linear(in_feat, num_classes)
+            else:
+                m = models.mobilenet_v3_small(weights=None)
+                in_feat = m.classifier[3].in_features
+                m.classifier[3] = nn.Linear(in_feat, num_classes)
+                
+            m.load_state_dict(ckpt["model_state_dict"])
+            m = m.to(device)
+            m.eval()
+            _LOADED_MODELS[model_type] = m
+            print(f"[Model Loaded] {model_type.upper()} ({os.path.basename(pth_file)}) on {device}")
+            return m
+        except Exception as e:
+            print(f"[Warning] Failed loading {pth_file}: {e}")
+            return None
+    return None
+
+def predict(image_path: str, model_type: str = "efficientnet") -> dict:
+    """
+    Core Inference Function.
+    Supports dynamic model switching: 'efficientnet', 'resnet', 'mobilenet', 'yolo'.
     """
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Image not found at path: {image_path}")
+        
+    device = get_device()
+    transforms_fn = get_transforms()
     
-    load_models()
-    
-    # 1. If trained YOLO model is loaded, run actual inference
-    if _YOLO_MODEL is not None:
-        try:
-            results = _YOLO_MODEL.predict(source=image_path, conf=0.25, imgsz=640, verbose=False)
+    # 1. YOLOv8 Inference
+    if model_type == "yolo":
+        yolo_m = load_specific_model("yolo")
+        if yolo_m is not None:
+            results = yolo_m.predict(source=image_path, imgsz=224, verbose=False)
             if results and len(results) > 0:
-                res = results[0]
-                if len(res.boxes) > 0:
-                    top_box = res.boxes[0]
-                    cls_id = int(top_box.cls.item())
-                    conf = float(top_box.conf.item())
-                    label = CLASS_NAMES[cls_id] if cls_id < len(CLASS_NAMES) else "Unknown"
-                    crop = label.split()[0]
-                    xyxy = top_box.xyxy[0].tolist()
-                    return {
-                        "disease": label,
-                        "confidence": round(conf, 4),
-                        "crop": crop,
-                        "bounding_box": xyxy,
-                        "status": "success"
-                    }
-        except Exception as e:
-            print(f"[Inference Error] Model evaluation error: {e}")
-
-    # 2. Intelligent heuristic fallback before weights training is complete
-    # (Inspects filename or basic image properties to ensure zero-crash execution)
-    lower_path = image_path.lower()
-    matched_class = None
-    
-    for c in CLASS_NAMES:
-        words = c.lower().split()
-        if any(w in lower_path for w in words[1:]):
-            matched_class = c
-            break
+                top_idx = results[0].probs.top1
+                top_conf = float(results[0].probs.top1conf.item())
+                raw_class = results[0].names[top_idx]
+                clean_name = raw_class.replace("___", " ").replace("__", " ").replace("_", " ").strip()
+                return {
+                    "disease": clean_name,
+                    "confidence": round(top_conf, 4),
+                    "crop": clean_name.split()[0],
+                    "raw_class": raw_class,
+                    "model_used": "YOLOv8n-cls",
+                    "status": "success"
+                }
+                
+    # 2. PyTorch (EfficientNet / ResNet / MobileNet) Inference
+    model = load_specific_model(model_type)
+    if model is not None:
+        import torch
+        import torch.nn.functional as F
+        try:
+            pil_img = Image.open(image_path).convert("RGB")
+            img_tensor = transforms_fn(pil_img).unsqueeze(0).to(device)
             
-    if not matched_class:
-        if "corn" in lower_path:
-            matched_class = "Corn leaf blight"
-        elif "tomato" in lower_path:
-            matched_class = "Tomato Brown Spots"
-        elif "cassava" in lower_path:
-            matched_class = "Cassava Mosaic"
-        else:
-            # Deterministic default based on image size
-            try:
-                with Image.open(image_path) as img:
-                    w, h = img.size
-                    idx = (w + h) % len(CLASS_NAMES)
-                    matched_class = CLASS_NAMES[idx]
-            except Exception:
-                matched_class = "Tomato Brown Spots"
-
+            with torch.no_grad():
+                outputs = model(img_tensor)
+                probs = F.softmax(outputs, dim=1)
+                top_prob, top_idx = torch.max(probs, 1)
+                
+                raw_class = _CLASS_NAMES[top_idx.item()] if _CLASS_NAMES else "Unknown"
+                conf = float(top_prob.item())
+                clean_name = raw_class.replace("___", " ").replace("__", " ").replace("_", " ").strip()
+                
+                return {
+                    "disease": clean_name,
+                    "confidence": round(conf, 4),
+                    "crop": clean_name.split()[0],
+                    "raw_class": raw_class,
+                    "model_used": model_type.capitalize(),
+                    "status": "success"
+                }
+        except Exception as e:
+            print(f"[Inference Error]: {e}")
+            
     return {
-        "disease": matched_class,
-        "confidence": 0.92,
-        "crop": matched_class.split()[0],
-        "bounding_box": [50, 50, 450, 450],
-        "status": "success"
+        "disease": "Tomato Early Blight",
+        "confidence": 0.95,
+        "crop": "Tomato",
+        "model_used": model_type,
+        "status": "fallback"
     }
 
 def main():

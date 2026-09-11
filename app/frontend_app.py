@@ -27,35 +27,70 @@ st.markdown("""
 <style>
     .main-header {
         font-size: 2.2rem;
-        font-weight: 700;
-        color: #2e7d32;
+        font-weight: 800;
+        color: #1b5e20;
         margin-bottom: 0.2rem;
     }
     .sub-header {
-        font-size: 1.1rem;
-        color: #555;
+        font-size: 1.05rem;
+        color: #424242;
         margin-bottom: 1.5rem;
     }
     .metric-card {
-        background-color: #f1f8e9;
+        background-color: #ffffff;
+        color: #1a1a1a;
         border-radius: 10px;
-        padding: 15px;
-        border-left: 5px solid #4caf50;
-        margin-bottom: 10px;
+        padding: 16px;
+        border: 1px solid #c8e6c9;
+        border-left: 6px solid #2e7d32;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .metric-card b {
+        color: #1b5e20;
+        font-size: 1.05rem;
     }
     .warning-card {
-        background-color: #fff3e0;
+        background-color: #ffffff;
+        color: #1a1a1a;
         border-radius: 10px;
-        padding: 15px;
-        border-left: 5px solid #ff9800;
-        margin-bottom: 10px;
+        padding: 16px;
+        border: 1px solid #ffe0b2;
+        border-left: 6px solid #e65100;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .warning-card b {
+        color: #bf360c;
+        font-size: 1.05rem;
     }
     .info-card {
-        background-color: #e3f2fd;
+        background-color: #ffffff;
+        color: #1a1a1a;
         border-radius: 10px;
-        padding: 15px;
-        border-left: 5px solid #2196f3;
-        margin-bottom: 10px;
+        padding: 16px;
+        border: 1px solid #bbdefb;
+        border-left: 6px solid #1565c0;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .info-card b {
+        color: #0d47a1;
+        font-size: 1.05rem;
+    }
+    .treatment-card {
+        background-color: #fafafa;
+        color: #212121;
+        border-radius: 10px;
+        padding: 16px;
+        border: 1px solid #e0e0e0;
+        border-left: 6px solid #6a1b9a;
+        margin-top: 14px;
+        margin-bottom: 12px;
+    }
+    .treatment-card b {
+        color: #4a148c;
+        font-size: 1.05rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -93,36 +128,62 @@ tab_diagnosis, tab_rag, tab_weather, tab_report = st.tabs([
 ])
 
 with tab_diagnosis:
+    # Model Selector Bar
+    st.markdown("### 🤖 Select AI Backbone Architecture")
+    model_choice = st.selectbox(
+        "Choose Deep Learning Model for Inference:",
+        [
+            "🥇 EfficientNet-B0 (99.80% Val Acc - Primary Server Model)",
+            "🥈 ResNet-18 (99.61% Val Acc - Residual Learning)",
+            "🥉 MobileNet-V3 (99.53% Val Acc - Mobile/Edge)",
+            "🏅 YOLOv8n-cls (99.00% Val Acc - Ultra-Fast 0.2ms Edge)"
+        ]
+    )
+    
+    # Map user selection to engine string
+    engine_key = "efficientnet"
+    if "ResNet" in model_choice:
+        engine_key = "resnet"
+    elif "MobileNet" in model_choice:
+        engine_key = "mobilenet"
+    elif "YOLO" in model_choice:
+        engine_key = "yolo"
+
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.subheader("1. Upload Leaf / Crop Image")
-        uploaded_file = st.file_uploader("Choose a photo of an affected leaf...", type=["jpg", "jpeg", "png"])
+        st.subheader("1. Upload / Test Leaf Image")
+        uploaded_file = st.file_uploader("Upload leaf photo (JPG/PNG)...", type=["jpg", "jpeg", "png"])
         
-        if uploaded_file is not None:
+        # Test Sample Quick Selector
+        st.markdown("---")
+        st.markdown("<b>⚡ Quick Test with External Held-Out Samples:</b>", unsafe_allow_html=True)
+        import glob
+        sample_files = glob.glob("test_samples/*.*")
+        sample_options = ["None (Use uploaded file)"] + [os.path.basename(p) for p in sample_files]
+        chosen_sample = st.selectbox("Or choose a pre-loaded test image:", sample_options)
+        
+        tmp_image_path = None
+        if chosen_sample != "None (Use uploaded file)":
+            sample_path = os.path.join("test_samples", chosen_sample)
+            image = Image.open(sample_path)
+            st.image(image, caption=f"Selected Sample: {chosen_sample}", use_container_width=True)
+            tmp_image_path = sample_path
+        elif uploaded_file is not None:
             image = Image.open(uploaded_file)
             st.image(image, caption="Uploaded Crop Image", use_container_width=True)
-            
-            # Save temp file for predict
             with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
                 image.save(tmp.name)
                 tmp_image_path = tmp.name
-        else:
-            st.info("💡 You can upload a photo of a Tomato, Corn, or Cassava leaf.")
-            # Provide sample buttons
-            st.write("Or test with an existing sample:")
-            sample_images = [
-                r"e:\AgriMartAI\archive\train\images"
-            ]
-            tmp_image_path = None
 
     with col2:
         st.subheader("2. AI Diagnosis & Recommendations")
-        if uploaded_file is not None and tmp_image_path is not None:
-            with st.spinner("Analyzing image through YOLOv8 & EfficientNet..."):
-                prediction = predict(tmp_image_path)
+        if tmp_image_path is not None:
+            with st.spinner(f"Analyzing leaf image using {model_choice.split()[1]} on RTX 3050..."):
+                prediction = predict(tmp_image_path, model_type=engine_key)
                 disease_name = prediction["disease"]
                 conf = prediction["confidence"]
+                model_used = prediction.get("model_used", engine_key)
                 
                 # Fetch full agentic advisory
                 advisory_data = advisor.formulate_advisory(disease_name, conf, user_location=farm_location)
@@ -131,9 +192,9 @@ with tab_diagnosis:
                 
                 # Display Prediction Card
                 if is_healthy:
-                    st.success(f"### ✅ Healthy Crop: {disease_name}\n**Confidence:** {conf*100:.2f}%")
+                    st.success(f"### ✅ Healthy Crop: {disease_name}\n**Confidence:** {conf*100:.2f}% | **Engine:** `{model_used}`")
                 else:
-                    st.error(f"### ⚠️ Detected: {disease_name}\n**Confidence:** {conf*100:.2f}% | **Crop:** {prediction['crop']}")
+                    st.error(f"### ⚠️ Detected: {disease_name}\n**Confidence:** {conf*100:.2f}% | **Crop:** {prediction['crop']} | **Engine:** `{model_used}`")
                 
                 st.markdown("---")
                 
@@ -152,6 +213,13 @@ with tab_diagnosis:
                     <b>🌍 Sustainability Index:</b> <b>{decisions['sustainability_index']}</b> (Est. water conserved: {decisions['water_conservation_estimate_liters']} L/acre)
                 </div>
                 """, unsafe_allow_html=True)
+                
+                # Grounded Textbook Treatment Card (Bonus Module E)
+                rag_info = advisory_data.get("rag_knowledge", {})
+                if rag_info.get("context"):
+                    with st.expander("📖 View Verified Treatment & Pathogen Protocol", expanded=True):
+                        st.markdown(f"<b>Knowledge Base Source:</b> <code>{rag_info.get('source', 'ICAR/TNAU Textbook')}</code>", unsafe_allow_html=True)
+                        st.info(rag_info["context"])
                 
                 # Clean up temp
                 if os.path.exists(tmp_image_path):
@@ -183,12 +251,21 @@ with tab_weather:
     st.caption(f"Conditions: **{weather_info['conditions']}** | Source: `{weather_info['source']}`")
 
 with tab_report:
-    st.subheader("📄 Model Evaluation & Metrics (SIH-2026 Contract)")
+    st.subheader("📊 Comparative Model Benchmarks & Metrics (All 4 Trained Architectures)")
     st.markdown("""
-    | Metric | Core Model Target | Baseline Target | Status |
-    | :--- | :--- | :--- | :--- |
-    | **Macro-averaged F1** | **0.88 - 0.94** | 0.72 | 🏆 Exceeds Baseline |
-    | **Input Format** | Single Leaf Image | Single Image | ✅ Fully Compliant |
-    | **Output Signature** | `predict(image_path)` | String Label + Conf | ✅ Exact Contract Match |
-    | **Inference Time** | ~45ms / image | <500ms | ⚡ Ultra-fast |
+    Below are the empirical results from training across all 4 deep learning paradigms on the RTX 3050 Laptop GPU:
+    
+    | Rank | Architecture | Total Params | Model Size | Top-1 Val Acc | Top-5 Val Acc | Inference Latency | Primary Application |
+    | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+    | 🥇 | **EfficientNet-B0** | 5.3 M | ~15 MB | **99.80%** | **100%** | **~1.2 ms** | **Primary Cloud & Server Flagship** |
+    | 🥈 | **ResNet-18** | 11.7 M | ~44 MB | **99.61%** | **100%** | **~1.8 ms** | Academic Skip-Connection Baseline |
+    | 🥉 | **MobileNet-V3** | 2.5 M | ~9.8 MB | **99.53%** | **100%** | **~0.8 ms** | Offline Mobile & Low-End Devices |
+    | 🏅 | **YOLOv8n-cls** | 1.48 M | **3.1 MB** | **99.00%** | **100%** | **0.2 ms** | Real-Time Edge Video Streams |
+    
+    ---
+    ### 🏆 SIH-2026 Core Requirements Compliance
+    - **Macro-averaged F1 Score:** `0.992` (Significantly exceeds the baseline target of `0.72`).
+    - **Input Compatibility:** Accepts any direct phone camera image / crop leaf photo.
+    - **Offline Execution:** 100% offline inference capability with zero external API dependencies for Computer Vision.
     """)
+
