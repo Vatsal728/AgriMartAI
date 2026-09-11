@@ -49,6 +49,72 @@ WMO_WEATHER_CODES = {
     96: "Thunderstorm with Hail"
 }
 
+def detect_device_location() -> Dict[str, Any]:
+    """Auto-detect user's current city and GPS coordinates using public IP geolocation."""
+    try:
+        resp = requests.get("http://ip-api.com/json/?fields=status,country,regionName,city,lat,lon", timeout=4)
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get("status") == "success":
+                city = data.get("city", "Ahmedabad")
+                region = data.get("regionName", "Gujarat")
+                country = data.get("country", "India")
+                return {
+                    "name": f"{city}, {region}",
+                    "city": city,
+                    "region": region,
+                    "country": country,
+                    "lat": float(data.get("lat", 23.0225)),
+                    "lon": float(data.get("lon", 72.5714)),
+                    "detected_online": True
+                }
+    except Exception as e:
+        print(f"[WeatherService] Auto-location detection fallback: {e}")
+        
+    return {
+        "name": "Ahmedabad, Gujarat",
+        "city": "Ahmedabad",
+        "region": "Gujarat",
+        "country": "India",
+        "lat": 23.0225,
+        "lon": 72.5714,
+        "detected_online": False
+    }
+
+def reverse_geocode_gps(lat: float, lon: float) -> Dict[str, Any]:
+    """Reverse geocode high-precision GPS coordinates into district/state name."""
+    try:
+        url = f"https://api.bigdatacloud.net/data/reverse-geocode-client?latitude={lat}&longitude={lon}&localityLanguage=en"
+        resp = requests.get(url, timeout=4)
+        if resp.status_code == 200:
+            d = resp.json()
+            locality = d.get("locality") or d.get("city") or d.get("principalSubdivision", "Farm Location")
+            admin = d.get("principalSubdivision", "")
+            country = d.get("countryName", "India")
+            full_name = f"{locality}, {admin}".strip(", ")
+            return {
+                "name": full_name,
+                "city": locality,
+                "region": admin,
+                "country": country,
+                "lat": lat,
+                "lon": lon,
+                "is_gps": True
+            }
+    except Exception as e:
+        print(f"[WeatherService] GPS reverse geocoding fallback: {e}")
+        
+    return {
+        "name": f"GPS ({round(lat, 4)}, {round(lon, 4)})",
+        "city": "GPS Location",
+        "region": "Agricultural Zone",
+        "country": "India",
+        "lat": lat,
+        "lon": lon,
+        "is_gps": True
+    }
+
+
 def geocode_location(location_name: str) -> Dict[str, Any]:
     """Geocode any city/district globally using Open-Meteo Geocoding API."""
     loc_clean = location_name.strip().lower()

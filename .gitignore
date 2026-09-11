@@ -12,10 +12,11 @@ ENV/
 # Model weights and artifacts
 models/*.pt
 models/*.pth
-models/*.h5
 weights/
 *.pt
 *.pth
+!models/efficientnet_b0_best.pth
+!models/mobilenet_v3_best.pth
 runs/
 *.onnx
 vector_store/

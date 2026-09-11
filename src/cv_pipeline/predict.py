@@ -50,7 +50,7 @@ def get_transforms():
     return _TRANSFORMS
 
 def load_specific_model(model_type="efficientnet"):
-    """Loads a specific model by name: efficientnet, resnet, mobilenet, or yolo."""
+    """Loads a specific model by name: efficientnet (web) or mobilenet (mobile)."""
     global _LOADED_MODELS, _CLASS_NAMES
     
     if model_type in _LOADED_MODELS:
@@ -59,30 +59,18 @@ def load_specific_model(model_type="efficientnet"):
     device = get_device()
     models_dir = os.path.join(os.path.dirname(__file__), "..", "..", "models")
     
-    if model_type == "yolo":
-        yolo_path = os.path.join(models_dir, "yolov8n_cls_best.pt")
-        if os.path.exists(yolo_path):
-            from ultralytics import YOLO
-            yolo_m = YOLO(yolo_path)
-            _LOADED_MODELS["yolo"] = yolo_m
-            print(f"[Model Loaded] YOLOv8 on {device}")
-            return yolo_m
-        return None
-        
     import torch
     import torch.nn as nn
     from torchvision import models
     
     file_map = {
         "efficientnet": "efficientnet_b0_best.pth",
-        "resnet": "resnet18_best.pth",
         "mobilenet": "mobilenet_v3_best.pth"
     }
     
     pth_file = os.path.join(models_dir, file_map.get(model_type, "efficientnet_b0_best.pth"))
     if not os.path.exists(pth_file):
-        # Fallback to any available
-        for alt in ["efficientnet_b0_best.pth", "resnet18_best.pth", "mobilenet_v3_best.pth"]:
+        for alt in ["efficientnet_b0_best.pth", "mobilenet_v3_best.pth"]:
             cand = os.path.join(models_dir, alt)
             if os.path.exists(cand):
                 pth_file = cand
@@ -98,10 +86,6 @@ def load_specific_model(model_type="efficientnet"):
                 m = models.efficientnet_b0(weights=None)
                 in_feat = m.classifier[1].in_features
                 m.classifier[1] = nn.Linear(in_feat, num_classes)
-            elif "resnet" in pth_file:
-                m = models.resnet18(weights=None)
-                in_feat = m.fc.in_features
-                m.fc = nn.Linear(in_feat, num_classes)
             else:
                 m = models.mobilenet_v3_small(weights=None)
                 in_feat = m.classifier[3].in_features
@@ -121,7 +105,7 @@ def load_specific_model(model_type="efficientnet"):
 def predict(image_path: str, model_type: str = "efficientnet") -> dict:
     """
     Core Inference Function.
-    Supports dynamic model switching: 'efficientnet', 'resnet', 'mobilenet', 'yolo'.
+    Supports model switching: 'efficientnet' (Web API) or 'mobilenet' (Mobile Edge).
     """
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Image not found at path: {image_path}")
@@ -129,26 +113,7 @@ def predict(image_path: str, model_type: str = "efficientnet") -> dict:
     device = get_device()
     transforms_fn = get_transforms()
     
-    # 1. YOLOv8 Inference
-    if model_type == "yolo":
-        yolo_m = load_specific_model("yolo")
-        if yolo_m is not None:
-            results = yolo_m.predict(source=image_path, imgsz=224, verbose=False)
-            if results and len(results) > 0:
-                top_idx = results[0].probs.top1
-                top_conf = float(results[0].probs.top1conf.item())
-                raw_class = results[0].names[top_idx]
-                clean_name = raw_class.replace("___", " ").replace("__", " ").replace("_", " ").strip()
-                return {
-                    "disease": clean_name,
-                    "confidence": round(top_conf, 4),
-                    "crop": clean_name.split()[0],
-                    "raw_class": raw_class,
-                    "model_used": "YOLOv8n-cls",
-                    "status": "success"
-                }
-                
-    # 2. PyTorch (EfficientNet / ResNet / MobileNet) Inference
+    # PyTorch (EfficientNet / MobileNet) Inference
     model = load_specific_model(model_type)
     if model is not None:
         import torch
