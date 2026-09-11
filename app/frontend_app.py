@@ -146,7 +146,7 @@ active_location = st.session_state.get("farm_location_input", "Ahmedabad, Gujara
 # 6. Sidebar: Field Telemetry & AI Model Selector
 with st.sidebar:
     try:
-        st.image("https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400", use_container_width=True)
+        st.image("https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400", width='stretch')
     except Exception:
         st.image("https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400")
     
@@ -164,7 +164,7 @@ with st.sidebar:
             label_visibility="collapsed"
         )
     with loc_col2:
-        if st.button("📍 GPS", help="Detect current live GPS / Device location", use_container_width=True):
+        if st.button("📍 GPS", help="Detect current live GPS / Device location", width='stretch'):
             det = detect_device_location()
             st.session_state["farm_location_input"] = det["name"]
             st.session_state["location_detected_online"] = det.get("detected_online", False)
@@ -204,7 +204,7 @@ with st.sidebar:
     if "MobileNet" in model_choice:
         engine_key = "mobilenet"
 
-    if st.button("🗑️ Clear Chat History", use_container_width=True):
+    if st.button("🗑️ Clear Chat History", width='stretch'):
         st.session_state["chat_history"] = []
         st.rerun()
 
@@ -237,13 +237,13 @@ st.markdown(f'<div class="chat-header-sub">Connected to: <b>{geo["name"]}</b> �
 # 8. Quick Suggested Question Chips
 chip_cols = st.columns(4)
 suggested_query = None
-if chip_cols[0].button("🐛 Sugarcane Aphids", use_container_width=True):
+if chip_cols[0].button("🐛 Sugarcane Aphids", width='stretch'):
     suggested_query = "What is the recommended pesticide dosage for aphids in sugarcane?"
-if chip_cols[1].button("🍅 Tomato Early Blight", use_container_width=True):
+if chip_cols[1].button("🍅 Tomato Early Blight", width='stretch'):
     suggested_query = "How to treat Tomato Early Blight using organic and chemical controls?"
-if chip_cols[2].button("🌾 High Yield Okra", use_container_width=True):
+if chip_cols[2].button("🌾 High Yield Okra", width='stretch'):
     suggested_query = "What are the recommended high yield varieties of Okra?"
-if chip_cols[3].button("🌧️ Spray Window Weather", use_container_width=True):
+if chip_cols[3].button("🌧️ Spray Window Weather", width='stretch'):
     suggested_query = f"Is the weather suitable for foliar chemical spraying in {geo['name']} today?"
 
 # 9. Test with a Sample Leaf
