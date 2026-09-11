@@ -18,7 +18,7 @@ class AgenticAdvisor:
         self.weather_service = WeatherService()
         self.sensor_simulator = IoTSensorSimulator()
 
-    def formulate_advisory(self, disease_name: str, confidence: float, user_location: str = None) -> dict:
+    def formulate_advisory(self, disease_name: str, confidence: float, user_location: str = None, custom_weather: dict = None, custom_sensors: dict = None) -> dict:
         """
         Executes the autonomous reasoning loop and produces a comprehensive farmer advisory report.
         """
@@ -26,8 +26,8 @@ class AgenticAdvisor:
         rag_info = self.retriever.retrieve_guidance(disease_name)
         
         # 2. Ingest environmental context
-        weather = self.weather_service.get_weather(user_location)
-        sensors = self.sensor_simulator.get_telemetry()
+        weather = custom_weather or self.weather_service.get_weather(user_location)
+        sensors = custom_sensors or self.sensor_simulator.get_telemetry()
         
         # 3. Autonomous Reasoning Engine
         # Smart Irrigation Logic (Bonus Module B & C)

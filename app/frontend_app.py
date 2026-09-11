@@ -103,13 +103,46 @@ advisor = AgenticAdvisor()
 
 # Sidebar: Controls & IoT Feed
 st.sidebar.image("https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400", use_container_width=True)
-st.sidebar.title("🚜 Farm Telemetry")
+st.sidebar.title("🚜 Farm Telemetry & Field Controls")
 farm_location = st.sidebar.text_input("📍 Farm Location", value="Ahmedabad, Gujarat")
 soil_type = st.sidebar.selectbox("🌱 Soil Type", ["Loamy", "Clay", "Sandy", "Black Cotton Soil"])
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("📡 Live IoT Sensor Node (ESP32)")
-live_sensors = advisor.sensor_simulator.get_telemetry(soil_type=soil_type)
+
+# Allow user to toggle between automated live stream vs interactive field testing
+telemetry_mode = st.sidebar.radio("Telemetry Mode:", ["🛰️ Live IoT Stream", "🎛️ Interactive Field Controls"])
+
+if telemetry_mode == "🎛️ Interactive Field Controls":
+    st.sidebar.caption("Adjust sliders to test how the AI Agent adapts in real-time:")
+    manual_moisture = st.sidebar.slider("💧 Soil Moisture (%)", 10.0, 70.0, 25.0, help="Test dry soil (<30%) vs optimal moisture")
+    manual_rain = st.sidebar.slider("🌧️ 24h Rain Forecast (%)", 0, 100, 75, help="Test rain imminent (>=60%) vs clear skies")
+    manual_wind = st.sidebar.slider("💨 Wind Speed (km/h)", 2.0, 35.0, 8.0, help="Test high drift risk (>15 km/h)")
+    
+    # Inject user overrides into advisor
+    live_sensors = {
+        "node_id": "ESP32-AGRI-04",
+        "soil_type": soil_type,
+        "soil_moisture_pct": manual_moisture,
+        "soil_moisture_status": "Deficit - Irrigation Required" if manual_moisture < 30 else ("Optimal" if manual_moisture <= 50 else "Excessive Moisture"),
+        "soil_ph": 6.8,
+        "soil_temp_c": 25.4,
+        "nutrients_npk": {"nitrogen_mg_kg": 165, "phosphorus_mg_kg": 48, "potassium_mg_kg": 210},
+        "sensor_health": "Active / 100% Battery"
+    }
+    # Pass override to advisor
+    override_weather = {
+        "rain_probability_pct": manual_rain,
+        "wind_speed_kmh": manual_wind,
+        "temperature_c": 28.5,
+        "humidity_pct": 75,
+        "conditions": "Rain Forecasted" if manual_rain >= 60 else "Clear Skies",
+        "source": "Interactive Field Simulation"
+    }
+else:
+    live_sensors = advisor.sensor_simulator.get_telemetry(soil_type=soil_type)
+    override_weather = None
+
 st.sidebar.metric("💧 Soil Moisture", f"{live_sensors['soil_moisture_pct']}%", live_sensors['soil_moisture_status'])
 st.sidebar.metric("🧪 Soil pH", f"{live_sensors['soil_ph']}", "Optimal" if 6.0 <= live_sensors['soil_ph'] <= 7.5 else "Needs Adjustment")
 st.sidebar.metric("🌡️ Soil Temp", f"{live_sensors['soil_temp_c']} °C")
@@ -186,7 +219,13 @@ with tab_diagnosis:
                 model_used = prediction.get("model_used", engine_key)
                 
                 # Fetch full agentic advisory
-                advisory_data = advisor.formulate_advisory(disease_name, conf, user_location=farm_location)
+                advisory_data = advisor.formulate_advisory(
+                    disease_name, 
+                    conf, 
+                    user_location=farm_location,
+                    custom_weather=override_weather,
+                    custom_sensors=live_sensors
+                )
                 
                 is_healthy = "healthy" in disease_name.lower()
                 
