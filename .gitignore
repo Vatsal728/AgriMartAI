@@ -33,6 +33,13 @@ archive.zip
 .kaggle/
 kaggle.json
 
+# Local documentation & diagrams
+*.pdf
+*.png
+*.jpg
+*.jpeg
+AgriSmart_AI_Master_Plan.md
+
 # IDE & OS
 .vscode/
 .idea/
