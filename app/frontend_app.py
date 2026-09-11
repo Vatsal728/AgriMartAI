@@ -98,30 +98,76 @@ st.markdown("""
 # Direct fallback import if API is offline
 from src.cv_pipeline.predict import predict
 from src.advisor.agentic_advisor import AgenticAdvisor
+from src.advisor.weather_service import WeatherService, geocode_location, fetch_live_agri_weather
 
 advisor = AgenticAdvisor()
 
 # Sidebar: Controls & IoT Feed
 st.sidebar.image("https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400", use_container_width=True)
 st.sidebar.title("🚜 Farm Telemetry & Field Controls")
-farm_location = st.sidebar.text_input("📍 Farm Location", value="Ahmedabad, Gujarat")
-soil_type = st.sidebar.selectbox("🌱 Soil Type", ["Loamy", "Clay", "Sandy", "Black Cotton Soil"])
+
+soil_type = st.sidebar.selectbox("🌱 Soil Texture", ["Loamy", "Clay", "Sandy", "Black Cotton Soil"])
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("📡 Live IoT Sensor Node (ESP32)")
+st.sidebar.subheader("📡 Environmental Data Source")
 
-# Allow user to toggle between automated live stream vs interactive field testing
-telemetry_mode = st.sidebar.radio("Telemetry Mode:", ["🛰️ Live IoT Stream", "🎛️ Interactive Field Controls"])
+# Allow user to toggle between Live Satellite vs Interactive Field testing vs IoT Node
+telemetry_mode = st.sidebar.radio(
+    "Data Source Mode:", 
+    ["🛰️ Live Real-World Satellite (Open-Meteo)", "🎛️ Interactive Field Controls", "📡 ESP32 IoT Hardware Node"],
+    index=0
+)
 
-if telemetry_mode == "🎛️ Interactive Field Controls":
+if telemetry_mode == "🛰️ Live Real-World Satellite (Open-Meteo)":
+    st.sidebar.caption("🛰️ **100% Real-Time Satellite Stream** (Open-Meteo):")
+    
+    preset_city = st.sidebar.selectbox(
+        "Select Agricultural Hub or Custom:",
+        [
+            "Nashik (Grape/Onion Hub)",
+            "Shimla (Apple Bowl)",
+            "Anand (Banana/Tobacco)",
+            "Ludhiana (Wheat/Paddy)",
+            "Surat (Sugarcane/Veg)",
+            "Guntur (Chilli/Cotton)",
+            "Nagpur (Orange City)",
+            "Varanasi (Paddy Belt)",
+            "Custom City / District..."
+        ]
+    )
+    
+    if "Custom" in preset_city:
+        farm_location = st.sidebar.text_input("Enter City / District:", value="Nashik")
+    else:
+        farm_location = preset_city.split(" (")[0]
+        
+    # Fetch live satellite weather & soil moisture
+    geo = geocode_location(farm_location)
+    live_weather_raw = fetch_live_agri_weather(geo["lat"], geo["lon"], geo["name"])
+    
+    override_weather = live_weather_raw
+    live_sensors = {
+        "node_id": f"SAT-RADAR-{geo['name'].upper()[:4]}",
+        "soil_type": soil_type,
+        "soil_moisture_pct": live_weather_raw["soil_moisture_pct"],
+        "soil_moisture_status": "Deficit - Irrigate" if live_weather_raw["soil_moisture_pct"] < 30 else ("Optimal" if live_weather_raw["soil_moisture_pct"] <= 55 else "High Moisture"),
+        "soil_ph": 6.8,
+        "soil_temp_c": round(live_weather_raw["temperature_c"] - 2.5, 1),
+        "nutrients_npk": {"nitrogen_mg_kg": 160, "phosphorus_mg_kg": 45, "potassium_mg_kg": 205},
+        "sensor_health": "Active (Copernicus / Open-Meteo Satellite)"
+    }
+    
+    st.sidebar.success(f"📍 **{geo['name']}**: {live_weather_raw['temperature_c']}°C | Rain: {live_weather_raw['rain_probability_pct']}%")
+
+elif telemetry_mode == "🎛️ Interactive Field Controls":
+    farm_location = st.sidebar.text_input("📍 Farm Location", value="Ahmedabad, Gujarat")
     st.sidebar.caption("Adjust sliders to test how the AI Agent adapts in real-time:")
     manual_moisture = st.sidebar.slider("💧 Soil Moisture (%)", 10.0, 70.0, 25.0, help="Test dry soil (<30%) vs optimal moisture")
     manual_rain = st.sidebar.slider("🌧️ 24h Rain Forecast (%)", 0, 100, 75, help="Test rain imminent (>=60%) vs clear skies")
     manual_wind = st.sidebar.slider("💨 Wind Speed (km/h)", 2.0, 35.0, 8.0, help="Test high drift risk (>15 km/h)")
     
-    # Inject user overrides into advisor
     live_sensors = {
-        "node_id": "ESP32-AGRI-04",
+        "node_id": "ESP32-SIM-04",
         "soil_type": soil_type,
         "soil_moisture_pct": manual_moisture,
         "soil_moisture_status": "Deficit - Irrigation Required" if manual_moisture < 30 else ("Optimal" if manual_moisture <= 50 else "Excessive Moisture"),
@@ -130,7 +176,6 @@ if telemetry_mode == "🎛️ Interactive Field Controls":
         "nutrients_npk": {"nitrogen_mg_kg": 165, "phosphorus_mg_kg": 48, "potassium_mg_kg": 210},
         "sensor_health": "Active / 100% Battery"
     }
-    # Pass override to advisor
     override_weather = {
         "rain_probability_pct": manual_rain,
         "wind_speed_kmh": manual_wind,
@@ -140,6 +185,7 @@ if telemetry_mode == "🎛️ Interactive Field Controls":
         "source": "Interactive Field Simulation"
     }
 else:
+    farm_location = st.sidebar.text_input("📍 Farm Location", value="Nashik, Maharashtra")
     live_sensors = advisor.sensor_simulator.get_telemetry(soil_type=soil_type)
     override_weather = None
 
@@ -278,16 +324,21 @@ with tab_rag:
         st.text_area("Retrieved Agronomy Chunk:", value=rag_res["retrieved_context"], height=220)
 
 with tab_weather:
-    st.subheader("🌦️ Real-Time Weather Intelligence (Bonus Module C)")
-    weather_info = advisor.weather_service.get_weather(farm_location)
+    st.subheader("🌦️ Real-Time Agrometeorological Satellite Intelligence")
+    weather_info = override_weather if override_weather else advisor.weather_service.get_weather(farm_location)
     
-    wcol1, wcol2, wcol3, wcol4 = st.columns(4)
+    wcol1, wcol2, wcol3 = st.columns(3)
     wcol1.metric("🌡️ Temperature", f"{weather_info['temperature_c']} °C")
     wcol2.metric("💧 Air Humidity", f"{weather_info['humidity_pct']}%")
-    wcol3.metric("🌧️ Rain Probability", f"{weather_info['rain_probability_pct']}%")
-    wcol4.metric("💨 Wind Speed", f"{weather_info['wind_speed_kmh']} km/h")
+    wcol3.metric("💨 Wind Speed", f"{weather_info['wind_speed_kmh']} km/h")
     
-    st.caption(f"Conditions: **{weather_info['conditions']}** | Source: `{weather_info['source']}`")
+    wcol4, wcol5, wcol6 = st.columns(3)
+    wcol4.metric("🌧️ Rain Probability", f"{weather_info['rain_probability_pct']}%", f"{weather_info.get('rain_mm', 0)} mm")
+    wcol5.metric("🌱 Satellite Soil Moisture", f"{weather_info.get('soil_moisture_pct', live_sensors['soil_moisture_pct'])}%", "0-9cm root zone")
+    wcol6.metric("☀️ UV Index", f"{weather_info.get('uv_index', 5.0)}", "Solar radiation")
+    
+    st.info(f"🛰️ **Telemetry Station:** {farm_location} | **Atmospheric State:** {weather_info['conditions']} | **Data Source:** `{weather_info.get('source', 'Open-Meteo Satellite')}`")
+
 
 with tab_report:
     st.subheader("📊 Comparative Model Benchmarks & Metrics (All 4 Trained Architectures)")

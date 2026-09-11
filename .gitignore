@@ -13,6 +13,9 @@ ENV/
 models/*.pt
 models/*.pth
 models/*.h5
+weights/
+*.pt
+*.pth
 runs/
 *.onnx
 vector_store/

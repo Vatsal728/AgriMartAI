@@ -8,6 +8,10 @@ Supports:
 
 import os
 import sys
+
+# Prevent Windows Intel OpenMP multiple runtime conflict
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 import glob
 import time
 import argparse
@@ -21,7 +25,11 @@ def get_device():
     """Detects best available compute hardware (CUDA GPU or CPU)."""
     if torch.cuda.is_available():
         device = torch.device("cuda:0")
+        torch.backends.cudnn.benchmark = True
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
         print(f"🚀 Using GPU Acceleration: {torch.cuda.get_device_name(0)}")
+        print("⚡ Enabled Tensor Core TF32 & cuDNN Kernel Auto-Tuner for Maximum Speed!")
     else:
         device = torch.device("cpu")
         print("⚙️ Using CPU Compute (Multi-threading enabled)")
@@ -44,7 +52,7 @@ def find_plantvillage_dataset():
 # ==========================================
 # 1. PYTORCH EFFICIENTNET / RESNET TRAINING
 # ==========================================
-def train_efficientnet(epochs=5, batch_size=32, lr=0.001, model_name="efficientnet_b0"):
+def train_efficientnet(epochs=5, batch_size=64, lr=0.001, model_name="efficientnet_b0"):
     """
     Trains a high-accuracy transfer learning classifier on the plant dataset.
     Optimized for memory efficiency and fast convergence.
@@ -82,9 +90,26 @@ def train_efficientnet(epochs=5, batch_size=32, lr=0.001, model_name="efficientn
         'valid': datasets.ImageFolder(valid_dir, data_transforms['valid'])
     }
 
+    # High-Throughput DataLoader (Maximizes RTX 3050 GPU Tensor Core Utilization)
     dataloaders = {
-        'train': DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=torch.cuda.is_available()),
-        'valid': DataLoader(image_datasets['valid'], batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=torch.cuda.is_available())
+        'train': DataLoader(
+            image_datasets['train'], 
+            batch_size=batch_size, 
+            shuffle=True, 
+            num_workers=4, 
+            pin_memory=True,
+            persistent_workers=True,
+            prefetch_factor=2
+        ),
+        'valid': DataLoader(
+            image_datasets['valid'], 
+            batch_size=batch_size, 
+            shuffle=False, 
+            num_workers=4, 
+            pin_memory=True,
+            persistent_workers=True,
+            prefetch_factor=2
+        )
     }
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'valid']}
@@ -110,10 +135,11 @@ def train_efficientnet(epochs=5, batch_size=32, lr=0.001, model_name="efficientn
 
     model = model.to(device)
 
-    # Loss & Optimizer
+    # Loss, Optimizer & AMP Scaler
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
+    scaler = torch.amp.GradScaler('cuda', enabled=(device.type == 'cuda'))
 
     best_acc = 0.0
     best_weights_path = models_dir / f"{model_name}_best.pth"
@@ -137,19 +163,21 @@ def train_efficientnet(epochs=5, batch_size=32, lr=0.001, model_name="efficientn
             total_processed = 0
 
             for inputs, labels in dataloaders[phase]:
-                inputs = inputs.to(device)
-                labels = labels.to(device)
+                inputs = inputs.to(device, non_blocking=True)
+                labels = labels.to(device, non_blocking=True)
 
-                optimizer.zero_grad()
+                optimizer.zero_grad(set_to_none=True)
 
                 with torch.set_grad_enabled(phase == 'train'):
-                    outputs = model(inputs)
-                    _, preds = torch.max(outputs, 1)
-                    loss = criterion(outputs, labels)
+                    with torch.amp.autocast(device_type=device.type, enabled=(device.type == 'cuda')):
+                        outputs = model(inputs)
+                        _, preds = torch.max(outputs, 1)
+                        loss = criterion(outputs, labels)
 
                     if phase == 'train':
-                        loss.backward()
-                        optimizer.step()
+                        scaler.scale(loss).backward()
+                        scaler.step(optimizer)
+                        scaler.update()
 
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
@@ -229,7 +257,7 @@ if __name__ == "__main__":
     parser.add_argument("--engine", choices=["efficientnet", "yolo", "mobilenet", "resnet"], default="efficientnet",
                         help="Choose training engine: efficientnet, yolo, mobilenet, or resnet")
     parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs")
-    parser.add_argument("--batch", type=int, default=32, help="Batch size")
+    parser.add_argument("--batch", type=int, default=128, help="Batch size (e.g. 64 or 128 for high GPU utilization)")
     parser.add_argument("--lr", type=float, default=0.001, help="Learning rate")
     args = parser.parse_args()
 
@@ -241,4 +269,4 @@ if __name__ == "__main__":
             "mobilenet": "mobilenet_v3",
             "resnet": "resnet18"
         }
-        train_efficientnet(epochs=args.epochs, batch=args.batch, lr=args.lr, model_name=model_map[args.engine])
+        train_efficientnet(epochs=args.epochs, batch_size=args.batch, lr=args.lr, model_name=model_map[args.engine])
