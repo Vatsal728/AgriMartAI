@@ -1,7 +1,6 @@
 # Core Deep Learning & Computer Vision (CUDA-ready)
 torch>=2.2.0
 torchvision>=0.17.0
-ultralytics>=8.1.0
 opencv-python>=4.8.0
 pillow>=10.0.0
 scikit-learn>=1.3.0
@@ -22,7 +21,7 @@ sentence-transformers>=2.2.2
 datasets>=2.18.0
 
 # Frontend Dashboard
-streamlit>=1.30.0
+streamlit>=1.40.0
 
 # Utilities
 tqdm>=4.66.0
