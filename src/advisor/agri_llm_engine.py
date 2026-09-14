@@ -5,12 +5,13 @@ Provides fast, offline, deterministic agronomic reasoning and conversational cap
 """
 
 import os
+
+# Ensure OpenMP stability on Windows before importing torch
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 import torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from peft import PeftModel
-
-# Ensure OpenMP stability on Windows
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 BASE_MODEL_NAME = "google/flan-t5-base"
 ADAPTER_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "models", "agri_flan_t5_expert"))
@@ -31,13 +32,14 @@ class LocalAgriLLM:
             return
 
         try:
-            print(f"[AgriLLM] Loading tokenizer & base model ({BASE_MODEL_NAME}) on {self.device}...")
+            device_info = f"GPU: {torch.cuda.get_device_name(0)}" if self.device == "cuda" else "CPU"
+            print(f"[AgriLLM] Loading tokenizer & base model ({BASE_MODEL_NAME}) on {device_info}...")
             self.tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
             
             # Load base model in fp16 on CUDA if available
             base_model = AutoModelForSeq2SeqLM.from_pretrained(
                 BASE_MODEL_NAME,
-                torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
+                dtype=torch.float16 if self.device == "cuda" else torch.float32,
                 device_map="auto" if self.device == "cuda" else None
             )
             
@@ -45,7 +47,12 @@ class LocalAgriLLM:
             self.model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
             self.model.eval()
             self.is_loaded = True
-            print("[AgriLLM] Fine-tuned AgriMart LLM loaded and ready!")
+            
+            if self.device == "cuda":
+                vram_mb = torch.cuda.memory_allocated(0) / (1024 * 1024)
+                print(f"[AgriLLM] Fine-tuned AgriMart LLM loaded and active on {device_info} (VRAM: {vram_mb:.1f} MB)!")
+            else:
+                print(f"[AgriLLM] Fine-tuned AgriMart LLM loaded on CPU!")
         except Exception as e:
             print(f"[AgriLLM Error] Failed loading local model: {e}")
             self.is_loaded = False
@@ -64,7 +71,8 @@ class LocalAgriLLM:
         prompt += "\nAnswer:"
 
         try:
-            inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, max_length=256).to(self.device)
+            device = self.model.device if hasattr(self.model, "device") else self.device
+            inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, max_length=256).to(device)
             with torch.no_grad():
                 outputs = self.model.generate(
                     **inputs,
