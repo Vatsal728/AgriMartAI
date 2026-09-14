@@ -34,14 +34,23 @@ class LocalAgriLLM:
         try:
             device_info = f"GPU: {torch.cuda.get_device_name(0)}" if self.device == "cuda" else "CPU"
             print(f"[AgriLLM] Loading tokenizer & base model ({BASE_MODEL_NAME}) on {device_info}...")
-            self.tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
             
-            # Load base model in fp16 on CUDA if available
-            base_model = AutoModelForSeq2SeqLM.from_pretrained(
-                BASE_MODEL_NAME,
-                dtype=torch.float16 if self.device == "cuda" else torch.float32,
-                device_map="auto" if self.device == "cuda" else None
-            )
+            # 1. Try offline local files first to avoid slow HF Hub network rate limits
+            try:
+                self.tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME, local_files_only=True)
+                base_model = AutoModelForSeq2SeqLM.from_pretrained(
+                    BASE_MODEL_NAME,
+                    dtype=torch.float16 if self.device == "cuda" else torch.float32,
+                    device_map="auto" if self.device == "cuda" else None,
+                    local_files_only=True
+                )
+            except Exception:
+                self.tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
+                base_model = AutoModelForSeq2SeqLM.from_pretrained(
+                    BASE_MODEL_NAME,
+                    dtype=torch.float16 if self.device == "cuda" else torch.float32,
+                    device_map="auto" if self.device == "cuda" else None
+                )
             
             print(f"[AgriLLM] Injecting trained LoRA expert adapter from {ADAPTER_PATH}...")
             self.model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
@@ -57,9 +66,9 @@ class LocalAgriLLM:
             print(f"[AgriLLM Error] Failed loading local model: {e}")
             self.is_loaded = False
 
-    def generate_advisory(self, instruction: str, context: str = "", max_tokens: int = 256) -> str:
+    def generate_advisory(self, instruction: str, context: str = "", max_tokens: int = 120) -> str:
         """
-        Runs generation using the fine-tuned AgriMart LLM model.
+        Runs fast GPU generation using the fine-tuned AgriMart LLM model.
         Synthesizes output into natural, professional conversational advice.
         """
         if not self.is_loaded or self.model is None or self.tokenizer is None:
@@ -72,17 +81,17 @@ class LocalAgriLLM:
 
         try:
             device = self.model.device if hasattr(self.model, "device") else self.device
-            inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, max_length=256).to(device)
+            inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, max_length=160).to(device)
             with torch.no_grad():
                 outputs = self.model.generate(
                     **inputs,
                     max_new_tokens=max_tokens,
-                    repetition_penalty=1.40,
+                    repetition_penalty=1.25,
                     no_repeat_ngram_size=3,
-                    length_penalty=1.0,
                     do_sample=False,
-                    num_beams=2,
-                    early_stopping=True
+                    num_beams=1,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                    eos_token_id=self.tokenizer.eos_token_id
                 )
             answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
             
@@ -96,6 +105,25 @@ class LocalAgriLLM:
         except Exception as e:
             print(f"[AgriLLM Error during generate]: {e}")
             return ""
+
+
+def clean_robotic_phrases(content: str) -> str:
+    import re
+    patterns = [
+        r'The model disease is not a laboratory result\.?\s*',
+        r'Use the symptom pattern to distinguish this disease from look-alike disorders\.?\s*',
+        r'Never convert a rate by guesswork;?\s*',
+        r'No spray is needed for a healthy or no-chemical profile\.?\s*',
+        r'Apply only if the crop disease and disease are covered by the current [^.]+\.?\s*',
+        r'Do not use fungicides that contain toxic waste\.?\s*',
+        r'Do not use a universal product rate from this dataset\.?\s*',
+        r'Select only a locally registered [^.]+ as a crop-stage advisory\.?\s*',
+        r'^(The predicted (disease|cause|model|result|crop) is|Likely cause:)\s*'
+    ]
+    for p in patterns:
+        content = re.sub(p, '', content, flags=re.IGNORECASE)
+    content = content.replace("Rotine", "Routine").replace("vermicombpost", "vermicompost").replace("cartload", "cart-load")
+    return re.sub(r'\s+', ' ', content).strip()
 
 
 def format_agri_advisory_text(text: str) -> str:
@@ -136,18 +164,16 @@ def format_agri_advisory_text(text: str) -> str:
                 icon = "📌"
                 title = re.sub(r'^\d+\.\s*', '', header).rstrip(':')
             
-            content = re.sub(r'^(The predicted (disease|cause|model|result|crop) is|Likely cause:)\s*', '', content, flags=re.IGNORECASE).strip()
-            if content:
-                formatted_lines.append(f"{icon} **{title}:** {content}")
+            clean_content = clean_robotic_phrases(content)
+            if clean_content:
+                formatted_lines.append(f"{icon} **{title}:** {clean_content}")
             i += 2
             
         if formatted_lines:
             return "\n\n".join(formatted_lines)
             
     # Fallback cleanup
-    clean = re.sub(r'The predicted (disease|cause|model|result|crop) is\s+', '', text, flags=re.IGNORECASE)
-    clean = re.sub(r'Likely cause:\s+', '', clean, flags=re.IGNORECASE)
-    return clean.strip()
+    return clean_robotic_phrases(text)
 
 
 # Singleton helper

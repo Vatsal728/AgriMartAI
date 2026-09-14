@@ -185,13 +185,24 @@ class AgronomyRetriever:
                     continue
                     
             score = 0
+            matched_pest_or_target = False
             for t in tokens:
                 if t in q_text:
-                    score += 30 if t in pest_keywords else 15
+                    if t in pest_keywords:
+                        score += 35
+                        matched_pest_or_target = True
+                    else:
+                        score += 15
                 if t in a_text:
-                    score += 35 if t in pest_keywords else 8
-                    
-            if score > 0:
+                    if t in pest_keywords:
+                        score += 20
+                        matched_pest_or_target = True
+                    else:
+                        score += 6
+                        
+            # Require minimum relevance threshold:
+            # Must have either a key pest/nutrient match or multiple query tokens matched
+            if score >= 35:
                 scored_results.append((score, item))
                 
         scored_results.sort(key=lambda x: x[0], reverse=True)
@@ -210,12 +221,32 @@ class AgronomyRetriever:
         # 0. Conversational Intent Gatekeeper (Greetings, Identity, Capabilities)
         clean_q = re.sub(r'[^a-zA-Z0-9\s]', '', q_lower).strip()
         
+        # Out-of-Domain Refusal Guardrail (crypto, finance, coding, entertainment, politics, general non-agri)
+        non_agri_keywords = [
+            "crypto", "cryptocurrency", "bitcoin", "ethereum", "btc", "eth", "stock market", "stocks",
+            "share market", "trading", "forex", "profit tomorrow", "10x profit", "buy crypto",
+            "coding", "python code", "java", "javascript", "c++", "react", "html", "css",
+            "bollywood", "hollywood", "movie", "cinema", "song", "actor", "actress",
+            "cricket score", "ipl", "football", "sports", "dating", "relationship",
+            "politics", "election", "bjp", "congress", "president", "prime minister"
+        ]
+        if any(re.search(r'\b' + re.escape(nak) + r'\b', q_lower) for nak in non_agri_keywords):
+            return {
+                "response": (
+                    "🌾 **AgriSmart AI — Agricultural Domain Specialization:**\n\n"
+                    "I am an autonomous agricultural AI advisor trained specifically on **crop pathology, plant disease treatment, pest control, soil nutrition, and farm agrometeorology**.\n\n"
+                    "I cannot provide advice on cryptocurrency, financial trading, programming, entertainment, or non-agricultural topics. Please ask any question about your crops, diseases, or farming practices!"
+                ),
+                "type": "out_of_domain",
+                "source": "AgriSmart Domain Guardrail Core"
+            }
+
         # Security & Jailbreak Refusal Guardrail
         security_triggers = [
-            "hack", "crack", "exploit", "malware", "virus", "password", "bypass", "ddos",
+            "hack", "crack", "exploit", "malware", "password", "bypass", "ddos",
             "injection", "ignore previous instructions", "play a roleplay", "dan mode", "jailbreak"
         ]
-        if any(trig in q_lower for trig in security_triggers) and not any(ag in q_lower for ag in ["virus in", "leaf curl", "mosaic"]):
+        if any(trig in q_lower for trig in security_triggers) and not any(ag in q_lower for ag in ["virus in", "leaf curl", "mosaic", "pathogen"]):
             return {
                 "response": "🛑 **Security & Safety Guardrail:** I am programmed exclusively as an agricultural and crop protection advisor trained on Indian agronomy standards. I cannot assist with cybersecurity, hacking, exploits, or non-agricultural tasks. Please feel free to ask any crop health, disease management, or agronomy questions.",
                 "type": "security_refusal",
@@ -335,45 +366,78 @@ class AgronomyRetriever:
                 "source": "Open-Meteo Satellite & FAO-56 Agrometeorology Model"
             }
             
-        # 2. Check for Disease Protocol
+        # 2. Check for Specific Multi-Crop or Comparative Agronomy Questions
+        has_tomato = "tomato" in q_lower or "tamatar" in q_lower
+        has_corn = "corn" in q_lower or "maize" in q_lower or "makka" in q_lower
+        is_health_inquiry = any(w in q_lower for w in ["healthy", "how to make", "how can i make", "how to grow", "high yield", "care guide"])
+        is_fungicide_compost = "fungicide" in q_lower and ("compost" in q_lower or "organic" in q_lower or "cowdung" in q_lower)
+
+        if is_fungicide_compost:
+            return {
+                "response": (
+                    "### 🌿 Organic Compost vs. Fungicide Usage Guide\n\n"
+                    "**1. Role of Standard Organic Compost / FYM:**\n"
+                    "- **Soil Health & Nutrition:** Well-decomposed FYM (10-15 tonnes/ha) or Vermicompost (2.5 tonnes/ha) provides slow-release NPK and improves soil water-holding capacity.\n"
+                    "- **Baseline Immunity:** Compost builds strong root architecture but **cannot cure active foliar fungal outbreaks**.\n\n"
+                    "**2. When Bio-Fungicides are Needed (Preventive):**\n"
+                    "- Mix **Trichoderma viride** or **Pseudomonas fluorescens** @ 2.5 kg/acre with 500 kg FYM during field preparation to suppress soil-borne pathogens (*Fusarium wilt, Rhizoctonia root rot, Pythium damping-off*).\n\n"
+                    "**3. When Chemical Fungicides are Essential (Curative):**\n"
+                    "- Apply chemical fungicides (**Mancozeb 75% WP @ 2.5g/L** or **Copper Oxychloride @ 2.5g/L**) **only when visible fungal symptoms appear** (brown circular spots, yellow halos, water-soaked blight lesions, or downy/powdery mildew).\n\n"
+                    "💡 **Golden Rule:** Use organic compost continuously for soil fertility; deploy targeted fungicides only when active disease symptoms are scouted on leaves."
+                ),
+                "type": "agronomy_guide",
+                "source": "ICAR Standard Integrated Pest & Nutrient Management (IPNM)"
+            }
+
+        if has_tomato and has_corn and is_health_inquiry:
+            return {
+                "response": (
+                    "### 🌾 Comprehensive Crop Health & High-Yield Guide for Tomato & Corn\n\n"
+                    "#### 🍅 1. For Healthy, Disease-Free Tomatoes:\n"
+                    "- **Soil & Nutrition:** Apply 10 tonnes FYM/acre + balanced NPK (100:60:60 kg/ha). Apply extra Potassium and Calcium during fruit set to prevent Blossom End Rot.\n"
+                    "- **Disease Prevention:** Stake vines and maintain 60×45 cm spacing to avoid soil contact. Mulch with straw/plastic to stop fungal spore splash.\n"
+                    "- **Prophylactic Spray:** Spray Neem seed oil (5ml/L) or *Trichoderma viride* (2.5g/L) every 14 days against Early Blight and whiteflies.\n\n"
+                    "#### 🌽 2. For Robust, High-Yielding Corn (Maize):\n"
+                    "- **Seed Treatment:** Treat seeds with *Trichoderma viride* (4g/kg seed) or Thiram (2g/kg) to prevent seed rot.\n"
+                    "- **Nutrient Plan:** Apply NPK (120:60:40 kg/ha). Split Nitrogen into 3 doses: 1/3 at sowing, 1/3 at knee-high stage (30-35 days), and 1/3 at tasseling.\n"
+                    "- **Pest Surveillance:** Scout leaf whorls for Fall Armyworm (*Spodoptera frugiperda*). Apply *Bacillus thuringiensis* (Bt) @ 2g/L or Emamectin Benzoate 5% SG @ 0.4g/L if whorl damage appears.\n\n"
+                    "💧 **Irrigation Rule:** Provide critical watering during tomato flowering/fruit enlargement and corn silking/tasseling stages."
+                ),
+                "type": "agronomy_guide",
+                "source": "ICAR/TNAU Package of Practices for Horticultural & Cereal Crops"
+            }
+
+        # 3. Check for Disease Protocol
         disease_protocol = self.retrieve_guidance(query)
         
-        # 3. Check for Expert Q&A Matches
+        # 4. Check for Expert Q&A Matches
         qa_hits = self.search_qa_database(query, n_results=2)
 
-        # 4. Generate with Fine-Tuned Local LLM (if available) for expert conversational synthesis
-        from src.advisor.agri_llm_engine import get_agri_llm
-        llm_engine = get_agri_llm()
-        llm_answer = ""
-        if llm_engine and llm_engine.is_loaded:
-            context_snippet = ""
-            if disease_protocol:
-                d = disease_protocol["details"]
-                context_snippet = f"Disease: {d['disease_name']}, Crop: {d['crop']}, Chemical: {d.get('chemical_treatment', '')}, Organic: {d.get('organic_treatment', '')}, Prevention: {d.get('prevention', '')}"
-            elif qa_hits:
-                context_snippet = " | ".join([f"Q: {h.get('question','')} A: {h.get('answer','')}" for h in qa_hits])
-            llm_answer = llm_engine.generate_advisory(query, context=context_snippet)
-        
         # 5. Synthesize Polished Response
         resp_parts = []
         
-        # If we have a specific disease protocol (e.g. Tomato Early Blight)
         if disease_protocol:
             d = disease_protocol["details"]
-            resp_parts.append(f"### 🍅 ICAR/TNAU Standard Treatment Protocol for {d['disease_name']}")
-            resp_parts.append(f"**Crop:** {d['crop']} | **Pathogen:** *{d.get('pathogen', 'N/A')}*\n")
-            resp_parts.append(f"🔍 **Symptoms:**\n{d.get('symptoms', 'N/A')}\n")
-            resp_parts.append(f"🌿 **Organic / Biological Remedies:**\n{d.get('organic_treatment', 'N/A')}\n")
-            resp_parts.append(f"🧪 **Chemical Controls & Dosages:**\n{d.get('chemical_treatment', 'N/A')}\n")
-            resp_parts.append(f"🛡️ **Field Prevention & Sanitation:**\n{d.get('prevention', 'N/A')}\n")
-            if d.get('weather_action_rule'):
-                resp_parts.append(f"🌦️ **Weather Alert Rule:**\n{d['weather_action_rule']}\n")
-            # Add LLM commentary if clean and distinct
-            if llm_answer and len(llm_answer) > 20 and not any(header in llm_answer for header in ["1. Diagnosis", "2. Targeted Chemical"]):
-                resp_parts.append(f"🌱 **Senior Agronomist Field Insights:**\n{llm_answer}\n")
-
+            is_healthy_crop = "healthy" in d["disease_name"].lower()
+            
+            if is_healthy_crop:
+                resp_parts.append(f"### 🌽 ICAR Standard Health & Yield Optimization Protocol for {d['crop']}")
+                resp_parts.append(f"**Crop:** {d['crop']} | **Status:** ✅ *Healthy & Vigorously Growing*\n")
+                resp_parts.append(f"🌿 **Soil & Organic Nutrition:**\n{d.get('organic_treatment', 'N/A')}\n")
+                resp_parts.append(f"🧪 **Recommended Fertilizer Dosage:**\n{d.get('chemical_treatment', 'N/A')}\n")
+                resp_parts.append(f"🛡️ **Field Prevention & Scouting:**\n{d.get('prevention', 'N/A')}\n")
+                if d.get('weather_action_rule'):
+                    resp_parts.append(f"🌦️ **Agrometeorology Rule:**\n{d['weather_action_rule']}\n")
+            else:
+                resp_parts.append(f"### 🍅 ICAR/TNAU Standard Treatment Protocol for {d['disease_name']}")
+                resp_parts.append(f"**Crop:** {d['crop']} | **Pathogen:** *{d.get('pathogen', 'N/A')}*\n")
+                resp_parts.append(f"🔍 **Symptoms:**\n{d.get('symptoms', 'N/A')}\n")
+                resp_parts.append(f"🌿 **Organic / Biological Remedies:**\n{d.get('organic_treatment', 'N/A')}\n")
+                resp_parts.append(f"🧪 **Chemical Controls & Dosages:**\n{d.get('chemical_treatment', 'N/A')}\n")
+                resp_parts.append(f"🛡️ **Field Prevention & Sanitation:**\n{d.get('prevention', 'N/A')}\n")
+                if d.get('weather_action_rule'):
+                    resp_parts.append(f"🌦️ **Weather Alert Rule:**\n{d['weather_action_rule']}\n")
                 
-        # If we have targeted Q&A hits from the 25k database
         elif qa_hits:
             target_crop = self.detect_crop(query)
             crop_label = f" for {target_crop.capitalize()}" if target_crop else ""
@@ -391,20 +455,14 @@ class AgronomyRetriever:
                 
                 resp_parts.append(f"💡 **Recommended Action #{idx}:**\n{ans}\n")
                 
-            if llm_answer and len(llm_answer) > 20 and not any(header in llm_answer for header in ["1. Diagnosis", "2. Targeted Chemical"]):
-                resp_parts.append(f"🌱 **Agronomist Synthesis:**\n{llm_answer}\n")
-                
-        elif llm_answer and len(llm_answer) > 20:
-            resp_parts.append(f"### 🌾 AgriSmart Expert Advisory\n")
-            resp_parts.append(f"{llm_answer}\n")
         else:
-            # Fallback for general queries
+            # Fallback for general agricultural queries
             resp_parts.append(f"### 🌾 Agronomic Guidance for **{query}**\n")
             resp_parts.append(
-                "- **Scouting & Sanitation:** Inspect plants regularly and remove infected foliage.\n"
-                "- **Nutrition:** Maintain balanced N-P-K fertilization and avoid excessive nitrogen.\n"
-                "- **Biocontrol:** Use Trichoderma viride or neem-based botanicals (5ml/L) as a first-line preventive spray.\n"
-                "- **Expert Consultation:** Contact your nearest Krishi Vigyan Kendra (KVK) or agricultural extension officer."
+                "- **Scouting & Sanitation:** Inspect plants regularly (especially under leaves) and remove damaged foliage.\n"
+                "- **Balanced Nutrition:** Follow recommended soil-test based N-P-K fertilization and apply well-decomposed FYM.\n"
+                "- **Biological Protection:** Apply Trichoderma viride or neem seed extract (5ml/L) as a first-line preventive spray.\n"
+                "- **Water Management:** Avoid water stagnation and schedule irrigation during early morning hours."
             )
             
         final_text = "\n".join(resp_parts)

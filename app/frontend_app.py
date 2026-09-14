@@ -24,6 +24,23 @@ import streamlit as st
 import streamlit.components.v1 as components
 import re
 
+def clean_robotic_phrases(content: str) -> str:
+    patterns = [
+        r'The model disease is not a laboratory result\.?\s*',
+        r'Use the symptom pattern to distinguish this disease from look-alike disorders\.?\s*',
+        r'Never convert a rate by guesswork;?\s*',
+        r'No spray is needed for a healthy or no-chemical profile\.?\s*',
+        r'Apply only if the crop disease and disease are covered by the current [^.]+\.?\s*',
+        r'Do not use fungicides that contain toxic waste\.?\s*',
+        r'Do not use a universal product rate from this dataset\.?\s*',
+        r'Select only a locally registered [^.]+ as a crop-stage advisory\.?\s*',
+        r'^(The predicted (disease|cause|model|result|crop) is|Likely cause:)\s*'
+    ]
+    for p in patterns:
+        content = re.sub(p, '', content, flags=re.IGNORECASE)
+    content = content.replace("Rotine", "Routine").replace("vermicombpost", "vermicompost").replace("cartload", "cart-load")
+    return re.sub(r'\s+', ' ', content).strip()
+
 def format_agronomist_field_assessment(text: str) -> str:
     """
     Parses any numbered raw LLM advisory string (e.g. '1. Diagnosis & Pathogen: ... 2. Targeted Chemical ...')
@@ -61,19 +78,19 @@ def format_agronomist_field_assessment(text: str) -> str:
                 icon = "📌"
                 title = re.sub(r'^\d+\.\s*', '', header).rstrip(':')
                 
-            content = re.sub(r'^(The predicted (disease|cause|model|result|crop) is|Likely cause:)\s*', '', content, flags=re.IGNORECASE).strip()
-            if content:
+            clean_content = clean_robotic_phrases(content)
+            if clean_content:
                 formatted_html.append(
                     f'<div style="margin-bottom:8px; line-height:1.55;">'
                     f'<span style="font-weight:700; color:#0f766e;">{icon} {title}:</span> '
-                    f'<span style="color:#1e293b;">{content}</span>'
+                    f'<span style="color:#1e293b;">{clean_content}</span>'
                     f'</div>'
                 )
             i += 2
         if formatted_html:
             return "".join(formatted_html)
             
-    return f'<div style="line-height:1.55; color:#1e293b;">{text}</div>'
+    return f'<div style="line-height:1.55; color:#1e293b;">{clean_robotic_phrases(text)}</div>'
 
 # 1. Page Configuration
 st.set_page_config(
@@ -174,8 +191,16 @@ from src.rag_pipeline.retriever import AgronomyRetriever, get_global_retriever, 
 from src.advisor.weather_service import WeatherService, geocode_location, fetch_live_agri_weather, detect_device_location, reverse_geocode_gps
 from src.advisor.soil_database import infer_soil_from_location
 
-advisor = AgenticAdvisor()
-agronomy_retriever = get_global_retriever()
+@st.cache_resource(show_spinner=False)
+def load_cached_advisor():
+    return AgenticAdvisor()
+
+@st.cache_resource(show_spinner=False)
+def load_cached_retriever():
+    return get_global_retriever()
+
+advisor = load_cached_advisor()
+agronomy_retriever = load_cached_retriever()
 
 # 4. Initialize State for Location & Chat
 if "farm_location_input" not in st.session_state:
