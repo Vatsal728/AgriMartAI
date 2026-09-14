@@ -90,12 +90,15 @@ The system exposes clean REST endpoints for React / Next.js / Flutter mobile int
 
 | Endpoint | Method | Payload | Description |
 | :--- | :--- | :--- | :--- |
-| `/predict` | `POST` | `multipart/form-data` (`file`) | Classifies leaf image and returns disease + confidence. |
+| `/diagnose` | `POST` | `multipart/form-data` (`file`, `location`, `model_type`) | One-shot leaf image diagnosis + full ICAR treatment plan + weather. |
+| `/chat` | `POST` | `{"query": "...", "location": "..."}` | Conversational agronomy RAG agent with out-of-domain guardrails. |
+| `/predict` | `POST` | `multipart/form-data` (`file`, `model_type`) | Classifies leaf image and returns top-1 & top-3 predictions. |
 | `/advisory` | `POST` | `{"disease_name": "...", "location": "..."}` | Generates full ICAR treatment plan + weather spray rules. |
 | `/weather` | `GET` | `?location=Ahmedabad` | Returns satellite temperature, rain risk, and spray safety. |
+| `/telemetry` | `GET` | `?soil_type=Loamy` | Real-time IoT soil sensor feed simulator. |
 | `/health` | `GET` | None | Real-time system and AI model health checks. |
 
-*Interactive Swagger & OpenAPI documentation is available live at `http://localhost:8000/docs`.*
+*The Web Frontend is served directly at `http://localhost:8000/` and interactive Swagger docs at `http://localhost:8000/docs`.*
 
 ---
 
@@ -105,7 +108,12 @@ The system exposes clean REST endpoints for React / Next.js / Flutter mobile int
 AgriMartAI/
 ├── README.md                           # Master project documentation
 ├── requirements.txt                    # Project dependencies
+├── run_backend_and_ui.bat              # 1-Click FastAPI Server + Modern Web Frontend launcher
 ├── run_dashboard.bat                   # 1-Click Streamlit dashboard launcher
+├── frontend/                           # Modern HTML5/CSS3/Vanilla JS Web UI
+│   ├── index.html                      # Single-page agronomist dashboard
+│   ├── style.css                       # Responsive glassmorphism styling
+│   └── app.js                          # Real-time API controller and telemetry client
 ├── data/
 │   ├── BOOK_DS/
 │   │   ├── main_dataset.json           # 2,601 verified Indian agronomy training pairs

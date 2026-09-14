@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriSmart AI — Autonomous Crop Health & Agronomy Advisor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar: Weather & Farm Telemetry -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">🌾</div>
+                <div>
+                    <h1 class="brand-title">AgriSmart AI</h1>
+                    <p class="brand-sub">Autonomous Agronomy Core</p>
+                </div>
+            </div>
+
+            <div class="card location-card">
+                <div class="card-title">📍 Farm Location</div>
+                <div class="input-group">
+                    <input type="text" id="locationInput" value="Ahmedabad, Gujarat" placeholder="Enter District / City">
+                    <button id="btnGps" title="Detect GPS location">📍 GPS</button>
+                </div>
+            </div>
+
+            <div class="card weather-card" id="weatherWidget">
+                <div class="card-title">🛰️ Live Satellite Telemetry</div>
+                <div class="weather-metrics">
+                    <div class="metric-box">
+                        <span class="metric-label">🌡️ Temperature</span>
+                        <span class="metric-val" id="metricTemp">-- °C</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">💧 Humidity</span>
+                        <span class="metric-val" id="metricHum">-- %</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">🌧️ Rain Risk</span>
+                        <span class="metric-val" id="metricRain">-- %</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">🌱 Soil Moisture</span>
+                        <span class="metric-val" id="metricSoil">-- %</span>
+                    </div>
+                </div>
+                <div class="weather-footer" id="weatherCondition">Conditions: Fetching live satellite feed...</div>
+            </div>
+
+            <div class="card model-card">
+                <div class="card-title">🧠 AI Vision Engine</div>
+                <select id="modelSelect">
+                    <option value="efficientnet">⚡ EfficientNet-B0 (Cloud Precision: 99.74%)</option>
+                    <option value="mobilenet">📱 MobileNet-V3 (Edge Ultra-Fast: 99.47%)</option>
+                </select>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span>
+                    <span id="apiStatusText">FastAPI Server: Connected</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Chat & Advisory Area -->
+        <main class="chat-container">
+            <header class="chat-header">
+                <div>
+                    <h2 class="header-title">Crop Protection & Agronomy Workspace</h2>
+                    <p class="header-desc">Zero-Hallucination ICAR/TNAU Plant Pathology & Live Weather Synthesis</p>
+                </div>
+                <button id="btnClearChat" class="btn-secondary">🗑️ Clear Chat</button>
+            </header>
+
+            <!-- Quick Action Chips -->
+            <div class="quick-chips">
+                <button class="chip" data-query="Tomato Early blight symptoms and chemical control">🍅 Tomato Early Blight</button>
+                <button class="chip" data-query="How to control fall armyworm in corn?">🌽 Corn Fall Armyworm</button>
+                <button class="chip" data-query="Should I spray chemical medicine today in Ahmedabad?">🌦️ Spray Window Today</button>
+                <button class="chip" data-query="How to make all tomatoes and corns healthy?">🌾 High-Yield Crop Care</button>
+                <button class="chip" data-query="Does my plant need fungicide or is organic compost enough?">🌿 Compost vs Fungicide</button>
+            </div>
+
+            <!-- Messages Stream -->
+            <div class="messages-stream" id="messagesStream">
+                <div class="message assistant-msg welcome-msg">
+                    <div class="msg-avatar">🌱</div>
+                    <div class="msg-bubble">
+                        <b>Namaste! I am your AI Agronomist Assistant.</b><br><br>
+                        You can <b>upload or snap a photo of an infected leaf</b> for instant diagnosis, or <b>ask any agronomy question</b> (chemical dosages, organic bio-remedies, fertilizer schedules, live weather spray windows).<br><br>
+                        <i>Upload a photo below or click any quick prompt to begin!</i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image Upload Preview Banner -->
+            <div class="image-preview-bar" id="imagePreviewBar" style="display:none;">
+                <img id="previewImg" src="" alt="Preview">
+                <div class="preview-info">
+                    <span id="previewName">leaf_sample.jpg</span>
+                    <button id="btnRemoveImage" class="btn-icon">✖</button>
+                </div>
+            </div>
+
+            <!-- Chat Input Bar -->
+            <form class="chat-input-bar" id="chatForm">
+                <label for="imageUploadInput" class="upload-btn" title="Upload Crop Leaf Image">
+                    📷
+                    <input type="file" id="imageUploadInput" accept="image/*" style="display:none;">
+                </label>
+                <input type="text" id="chatTextInput" placeholder="Ask a farming question or upload a leaf photo..." autocomplete="off">
+                <button type="submit" id="btnSend" class="send-btn">
+                    <span>Send</span> ➔
+                </button>
+            </form>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

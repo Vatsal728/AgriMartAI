@@ -28,3 +28,19 @@ class AdvisoryResponse(BaseModel):
     llm_expert_advisory: Optional[str] = None
     conversational_summary: str
 
+class ChatRequest(BaseModel):
+    query: str
+    location: Optional[str] = "Ahmedabad, Gujarat"
+
+class ChatResponse(BaseModel):
+    response: str
+    type: str
+    source: str
+    status: str = "success"
+
+class FullDiagnosisResponse(BaseModel):
+    prediction: PredictionResponse
+    advisory: AdvisoryResponse
+    status: str = "success"
+
+
