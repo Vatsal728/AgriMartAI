@@ -1,16 +1,16 @@
 @echo off
+title AgriSmart AI Dashboard
+cd /d "%~dp0"
 echo ================================================================
 echo           Launching AgriSmart AI Dashboard...
 echo ================================================================
+echo.
 
-:: Check for .venv
-if exist ".venv\Scripts\activate.bat" (
-    call .venv\Scripts\activate.bat
-    streamlit run app/frontend_app.py --server.port 8502
-) else (
-    echo [WARNING] .venv not found. Running setup_env.bat first...
-    call setup_env.bat
-    call .venv\Scripts\activate.bat
-    streamlit run app/frontend_app.py --server.port 8502
-)
+set PY_EXE=python
+if exist "e:\anaconda\python.exe" set PY_EXE=e:\anaconda\python.exe
+if exist "%CONDA_PREFIX%\python.exe" set PY_EXE=%CONDA_PREFIX%\python.exe
+if exist "%USERPROFILE%\anaconda3\python.exe" set PY_EXE=%USERPROFILE%\anaconda3\python.exe
+
+echo Using Python: %PY_EXE%
+"%PY_EXE%" -m streamlit run app/frontend_app.py --server.port 8502
 pause
