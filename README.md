@@ -25,7 +25,7 @@
    - 2,601 verified Indian agronomy training pairs covering disease cures, tank-mix compatibility, resistance management (FRAC), Hinglish farmer queries, and security guardrails.
 4. **Agrometeorological Spray & Smart Irrigation**:
    - Real-time Open-Meteo satellite weather integration with rain wash-off rules and wind drift thresholds.
-   - FAO-56 evapotranspiration models and IoT soil moisture telemetry.
+   - FAO-56 evapotranspiration models and root-zone soil moisture analysis.
 
 ---
 
@@ -35,14 +35,12 @@
 | :--- | :--- | :--- | :--- |
 | **Multimodal Crop Diagnosis** | **Core Mandatory** | Accepts a leaf image + farmer question simultaneously; outputs exact disease classification & confidence. | ✅ Implemented |
 | **Grounded Field Action Plan** | Core Mandatory | 4-part treatment cards: Chemical Control, Organic Bio-Remedies, Cultural Prevention, Live Spray Decision. | ✅ Implemented |
-| **Offline Vector RAG** | Bonus Module A | ChromaDB vector search backed by *MBO09 Plant Pathology* textbook. | ✅ Implemented |
+| **Offline Vector RAG** | Bonus Module A | ChromaDB vector search backed by *MBO09 Plant Pathology* digital literature. | ✅ Implemented |
 | **Smart Irrigation** | Bonus Module B | Logic predicting irrigation timing based on soil moisture and 24h precipitation probability. | ✅ Implemented |
 | **Weather-Based Intelligence**| Bonus Module C | Real-time satellite geocoding, humidity, and wind-drift chemical spray window planner. | ✅ Implemented |
 | **Sustainability Score** | Bonus Module D | Quantified water conservation score (liters saved/acre) and eco-friendly practice index. | ✅ Implemented |
 | **Farmer Assistant (GenAI)** | Bonus Module E | Conversational reasoning engine citing verified agricultural and plant pathology literature. | ✅ Implemented |
-
-| **IoT Sensor Telemetry** | Bonus Module F | Real-time telemetry stream simulator (Soil Moisture %, pH, NPK, Soil Temp). | ✅ Implemented |
-| **Autonomous Agentic Advisor**| Bonus Module G | Continuous reasoning loop combining IoT sensors, weather, and diagnosis into a single field plan. | ✅ Implemented |
+| **Autonomous Agentic Advisor**| Bonus Module F | Continuous reasoning loop combining live weather, RAG protocols, and diagnosis into a single field plan. | ✅ Implemented |
 
 ---
 
@@ -95,10 +93,9 @@ The system exposes clean REST endpoints for React / Next.js / Flutter mobile int
 | `/predict` | `POST` | `multipart/form-data` (`file`) | Classifies leaf image and returns disease + confidence. |
 | `/advisory` | `POST` | `{"disease_name": "...", "location": "..."}` | Generates full ICAR treatment plan + weather spray rules. |
 | `/weather` | `GET` | `?location=Ahmedabad` | Returns satellite temperature, rain risk, and spray safety. |
-| `/telemetry` | `GET` | `?soil_type=Black Cotton` | Returns real-time IoT soil moisture, NPK, and pH levels. |
 | `/health` | `GET` | None | Real-time system and AI model health checks. |
 
-*Full integration code examples are documented in [`FRONTEND_BACKEND_INTEGRATION.txt`](FRONTEND_BACKEND_INTEGRATION.txt).*
+*Interactive Swagger & OpenAPI documentation is available live at `http://localhost:8000/docs`.*
 
 ---
 
@@ -109,7 +106,6 @@ AgriMartAI/
 ├── README.md                           # Master project documentation
 ├── requirements.txt                    # Project dependencies
 ├── run_dashboard.bat                   # 1-Click Streamlit dashboard launcher
-├── FRONTEND_BACKEND_INTEGRATION.txt    # Frontend API handoff guide
 ├── data/
 │   ├── BOOK_DS/
 │   │   ├── main_dataset.json           # 2,601 verified Indian agronomy training pairs
