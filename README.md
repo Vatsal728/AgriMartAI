@@ -33,15 +33,15 @@
 
 | Module | Category | Description | Status |
 | :--- | :--- | :--- | :--- |
-| **Multimodal Crop Diagnosis** | **Core Mandatory** | Accepts a leaf image + farmer question simultaneously; outputs exact disease classification & confidence. | ✅ Production Ready |
-| **Grounded Field Action Plan** | Core Mandatory | 4-part treatment cards: Chemical Control, Organic Bio-Remedies, Cultural Prevention, Live Spray Decision. | ✅ Production Ready |
-| **Offline Vector RAG** | Bonus Module A | ChromaDB vector search backed by *MBO09 Plant Pathology* textbook. | ✅ Production Ready |
-| **Smart Irrigation** | Bonus Module B | Logic predicting irrigation timing based on soil moisture and 24h precipitation probability. | ✅ Production Ready |
-| **Weather-Based Intelligence**| Bonus Module C | Real-time satellite geocoding, humidity, and wind-drift chemical spray window planner. | ✅ Production Ready |
-| **Sustainability Score** | Bonus Module D | Quantified water conservation score (liters saved/acre) and eco-friendly practice index. | ✅ Production Ready |
-| **Farmer Assistant (GenAI)** | Bonus Module E | Conversational reasoning engine citing verified Indian agronomy textbooks (Nem Raj Sunda, R.S. Singh). | ✅ Production Ready |
-| **IoT Sensor Telemetry** | Bonus Module F | Real-time telemetry stream simulator (Soil Moisture %, pH, NPK, Soil Temp). | ✅ Production Ready |
-| **Autonomous Agentic Advisor**| Bonus Module G | Continuous reasoning loop combining IoT sensors, weather, and diagnosis into a single field plan. | ✅ Production Ready |
+| **Multimodal Crop Diagnosis** | **Core Mandatory** | Accepts a leaf image + farmer question simultaneously; outputs exact disease classification & confidence. | ✅ Implemented |
+| **Grounded Field Action Plan** | Core Mandatory | 4-part treatment cards: Chemical Control, Organic Bio-Remedies, Cultural Prevention, Live Spray Decision. | ✅ Implemented |
+| **Offline Vector RAG** | Bonus Module A | ChromaDB vector search backed by *MBO09 Plant Pathology* textbook. | ✅ Implemented |
+| **Smart Irrigation** | Bonus Module B | Logic predicting irrigation timing based on soil moisture and 24h precipitation probability. | ✅ Implemented |
+| **Weather-Based Intelligence**| Bonus Module C | Real-time satellite geocoding, humidity, and wind-drift chemical spray window planner. | ✅ Implemented |
+| **Sustainability Score** | Bonus Module D | Quantified water conservation score (liters saved/acre) and eco-friendly practice index. | ✅ Implemented |
+| **Farmer Assistant (GenAI)** | Bonus Module E | Conversational reasoning engine citing verified Indian agronomy textbooks (Nem Raj Sunda, R.S. Singh). | ✅ Implemented |
+| **IoT Sensor Telemetry** | Bonus Module F | Real-time telemetry stream simulator (Soil Moisture %, pH, NPK, Soil Temp). | ✅ Implemented |
+| **Autonomous Agentic Advisor**| Bonus Module G | Continuous reasoning loop combining IoT sensors, weather, and diagnosis into a single field plan. | ✅ Implemented |
 
 ---
 
