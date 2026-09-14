@@ -37,11 +37,12 @@ archive.zip
 .kaggle/
 kaggle.json
 
-# Local documentation & diagrams
+# Local documentation & diagrams & large books
 *.pdf
 *.png
 *.jpg
 *.jpeg
+data/BOOK_DS/*.pdf
 AgriSmart_AI_Master_Plan.md
 
 # IDE & OS

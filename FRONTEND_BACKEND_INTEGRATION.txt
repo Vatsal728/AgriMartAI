@@ -1,0 +1,148 @@
+================================================================================
+AGRIMART AI: FRONTEND <-> FASTAPI BACKEND INTEGRATION SPECIFICATION
+================================================================================
+
+BASE BACKEND URL: http://localhost:8000
+CORS STATUS: Pre-configured (Allow all origins '*')
+
+--------------------------------------------------------------------------------
+1. LEAF SCAN & CROP DISEASE DIAGNOSIS
+--------------------------------------------------------------------------------
+ENDPOINT: POST /predict
+CONTENT-TYPE: multipart/form-data
+
+Request Payload:
+  - file: <Binary Image File (JPG / PNG / WEBP)>
+
+Frontend JavaScript Example:
+  const formData = new FormData();
+  formData.append("file", imageFile);
+
+  const response = await fetch("http://localhost:8000/predict", {
+    method: "POST",
+    body: formData
+  });
+  const data = await response.json();
+
+Backend Response JSON:
+  {
+    "crop": "Potato",
+    "disease": "Potato Early Blight",
+    "confidence": 0.9974,
+    "treatment_preview": "Foliar spray of Mancozeb 75% WP (Indofil M-45) @ 2.5g/L."
+  }
+
+--------------------------------------------------------------------------------
+2. COMPREHENSIVE FIELD ADVISORY & TREATMENT PROTOCOL
+--------------------------------------------------------------------------------
+ENDPOINT: POST /advisory
+CONTENT-TYPE: application/json
+
+Request Payload JSON:
+  {
+    "disease_name": "Potato Early Blight",
+    "confidence": 0.9974,
+    "location": "Ahmedabad"
+  }
+
+Frontend JavaScript Example:
+  const res = await fetch("http://localhost:8000/advisory", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      disease_name: "Potato Early Blight",
+      confidence: 0.9974,
+      location: "Ahmedabad"
+    })
+  });
+  const advisory = await res.json();
+
+Backend Response JSON:
+  {
+    "disease_detected": "Potato Early Blight",
+    "confidence": 0.9974,
+    "crop_category": "Potato",
+    "rag_knowledge": {
+      "source": "ICAR/TNAU Standard Agronomy Database (ChromaDB)",
+      "context": "Foliar spray of Mancozeb 75% WP (Indofil M-45) @ 2.5g/L or Tebuconazole @ 1ml/L. Organic: Copper Hydroxide @ 2g/L."
+    },
+    "environment_telemetry": {
+      "weather": { "temperature_c": 28.4, "humidity_pct": 65, "rain_probability_pct": 10, "wind_speed_kmh": 8.2 },
+      "iot_sensors": { "soil_moisture_pct": 45.0, "soil_ph": 6.8 }
+    },
+    "actionable_decisions": {
+      "smart_irrigation": "💧 OPTIMAL MOISTURE: Soil moisture is 45%. No immediate irrigation required.",
+      "chemical_spray_window": "✅ FAVORABLE SPRAY WINDOW: Calm winds and low rain risk in Ahmedabad.",
+      "water_conservation_estimate_liters": 1500,
+      "sustainability_index": "88/100"
+    },
+    "conversational_summary": "Diagnosis: Potato Early Blight (99.7% Confidence). Optimal spray window. No immediate irrigation needed."
+  }
+
+--------------------------------------------------------------------------------
+3. LIVE SATELLITE WEATHER & AGROMETEOROLOGY
+--------------------------------------------------------------------------------
+ENDPOINT: GET /weather?location={CityName}
+CONTENT-TYPE: application/json
+
+Frontend JavaScript Example:
+  const res = await fetch("http://localhost:8000/weather?location=Ahmedabad");
+  const weather = await res.json();
+
+Backend Response JSON:
+  {
+    "temperature_c": 28.4,
+    "humidity_pct": 65,
+    "rain_probability_pct": 10,
+    "wind_speed_kmh": 8.2,
+    "soil_moisture_pct": 45.0
+  }
+
+--------------------------------------------------------------------------------
+4. REAL-TIME IOT SOIL SENSOR TELEMETRY
+--------------------------------------------------------------------------------
+ENDPOINT: GET /telemetry?soil_type={SoilType}
+CONTENT-TYPE: application/json
+
+Frontend JavaScript Example:
+  const res = await fetch("http://localhost:8000/telemetry?soil_type=Black Cotton");
+  const telemetry = await res.json();
+
+Backend Response JSON:
+  {
+    "soil_moisture_pct": 45.2,
+    "soil_temp_c": 25.8,
+    "soil_ph": 6.8,
+    "nutrients_npk": {
+      "nitrogen_mg_kg": 160,
+      "phosphorus_mg_kg": 45,
+      "potassium_mg_kg": 205
+    }
+  }
+
+--------------------------------------------------------------------------------
+5. BACKEND HEALTH CHECK
+--------------------------------------------------------------------------------
+ENDPOINT: GET /health
+
+Backend Response JSON:
+  {
+    "status": "healthy",
+    "service": "AgriSmart AI Core Server",
+    "version": "1.0.0",
+    "modules": {
+      "cv_pipeline": "online",
+      "rag_knowledge_base": "online",
+      "weather_intelligence": "online",
+      "iot_sensor_stream": "online",
+      "agentic_advisor": "online"
+    }
+  }
+
+--------------------------------------------------------------------------------
+HOW TO START THE BACKEND SERVER:
+--------------------------------------------------------------------------------
+In your terminal, run:
+  cd E:\AgriMartAI
+  e:\anaconda\python.exe -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+================================================================================

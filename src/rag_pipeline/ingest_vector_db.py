@@ -149,12 +149,99 @@ def ingest_qa_dataset(client, embedding_fn, max_records=5000):
 
     print(f"[OK] Successfully ingested {total_records} Q&A records into 'agriculture_qa_knowledge' collection.")
 
+def ingest_mbo09_textbook(client, embedding_fn):
+    mbo09_pdf = os.path.join(os.path.dirname(__file__), "..", "..", "data", "BOOK_DS", "MBO09.pdf")
+    print(f"\n[3/3] Ingesting digital Plant Pathology Textbook from: {mbo09_pdf}")
+    if not os.path.exists(mbo09_pdf):
+        print(f"Notice: {mbo09_pdf} not found. Skipping MBO09 ingestion.")
+        return
+
+    try:
+        import pypdf
+        reader = pypdf.PdfReader(mbo09_pdf)
+        print(f"Found {len(reader.pages)} pages in MBO09.pdf. Extracting chapters & agronomy units...")
+
+        unit_pages = [
+            (1, "Plant Pathology & Disease Triangle", 6, 24),
+            (2, "Host Pathogen Interaction: Pathogen Attack", 24, 42),
+            (3, "Defense Mechanisms & Phytoalexins", 42, 68),
+            (4, "Pathogenesis & Disease Development", 68, 87),
+            (5, "Epiphytotics & Disease Forecasting", 87, 109),
+            (6, "Plant Disease Management: Chemical, Biological, Cultural", 109, 134),
+            (7, "Biotechnology & Breeding for Resistance", 134, 148),
+            (8, "Molecular Plant Pathology", 148, 171),
+            (9, "Fungal Diseases Classification", 171, 209),
+            (10, "Plant Diseases Caused by Fungi", 209, 271),
+            (11, "Bacterial Diseases Classification", 271, 287),
+            (12, "Plant Diseases Caused by Bacteria", 287, 325),
+            (13, "Viral Diseases Classification", 325, 346),
+            (14, "Plant Diseases Caused by Viruses", 346, 355),
+            (15, "Phytoplasmal Diseases", 355, 362),
+            (16, "Nematode Classification", 362, 385),
+            (17, "Plant Diseases Caused by Nematodes", 385, 395),
+            (18, "Non-Parasitic Nutritional Disorders", 395, 419),
+            (19, "Plant Galls Classification", 419, 428),
+            (20, "Plant Galls Physiology", 428, 439)
+        ]
+
+        try:
+            client.delete_collection("plant_pathology_mbo09")
+        except Exception:
+            pass
+
+        collection = client.create_collection(
+            name="plant_pathology_mbo09",
+            embedding_function=embedding_fn,
+            metadata={"description": "VMOU Plant Pathology Digital Textbook (MBO09)"}
+        )
+
+        all_ids = []
+        all_docs = []
+        all_metas = []
+
+        import re
+        chunk_idx = 0
+        for uid, uname, start, end in unit_pages:
+            unit_text = ""
+            for p in range(start, min(end, len(reader.pages))):
+                t = reader.pages[p].extract_text() or ""
+                unit_text += "\n" + t
+
+            clean_text = re.sub(r"\s+", " ", unit_text).strip()
+            words = clean_text.split(" ")
+            chunk_size = 200
+            for i in range(0, len(words), chunk_size - 30):
+                c_words = words[i:i + chunk_size]
+                if len(c_words) > 40:
+                    passage = " ".join(c_words)
+                    all_ids.append(f"mbo09_{chunk_idx}")
+                    all_docs.append(f"Unit {uid}: {uname}\n\n{passage}")
+                    all_metas.append({
+                        "unit_id": uid,
+                        "unit_name": uname,
+                        "source": "MBO09 Plant Pathology Textbook"
+                    })
+                    chunk_idx += 1
+
+        batch_size = 200
+        for i in range(0, len(all_docs), batch_size):
+            collection.upsert(
+                ids=all_ids[i:i + batch_size],
+                documents=all_docs[i:i + batch_size],
+                metadatas=all_metas[i:i + batch_size]
+            )
+
+        print(f"[OK] Successfully indexed {len(all_docs)} high-density passages from MBO09.pdf into 'plant_pathology_mbo09' collection.")
+    except Exception as e:
+        print(f"Error indexing MBO09: {e}")
+
 def run_ingestion():
     os.makedirs(PERSIST_DIR, exist_ok=True)
     client = chromadb.PersistentClient(path=PERSIST_DIR)
     embedding_fn = FastLocalAgronomyEmbeddingFunction()
     ingest_textbooks(client, embedding_fn)
     ingest_qa_dataset(client, embedding_fn, max_records=5000)
+    ingest_mbo09_textbook(client, embedding_fn)
     print(f"\n[SUCCESS] All Vector Database Ingestion Completed Successfully! Vector store located at: {PERSIST_DIR}")
 
 if __name__ == "__main__":

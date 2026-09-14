@@ -65,13 +65,16 @@ class AgenticAdvisor:
             f"{irrigation_advice} {spray_advice}"
         )
 
+        rag_src = rag_info.get("source", "ICAR/TNAU Standard Agronomy Database") if rag_info else "ICAR/TNAU Standard Agronomy Database"
+        rag_ctx = rag_info.get("retrieved_context", f"Maintain standard field sanitation and balanced crop nutrition for {disease_name}.") if rag_info else f"Maintain standard field sanitation and balanced crop nutrition for {disease_name}."
+
         return {
             "disease_detected": disease_name,
             "confidence": round(confidence, 4),
             "crop_category": disease_name.split()[0],
             "rag_knowledge": {
-                "source": rag_info["source"],
-                "context": rag_info["retrieved_context"]
+                "source": rag_src,
+                "context": rag_ctx
             },
             "environment_telemetry": {
                 "weather": weather,

@@ -42,7 +42,7 @@
       "organic_treatment": "Spray yellow sticky traps (15 traps/acre) to control whitefly vector. Spray 5% neem seed kernel extract (NSKE).",
       "chemical_treatment": "Control whitefly vector with Imidacloprid 17.8% SL (0.5ml/L) or Thiamethoxam 25% WG (0.3g/L).",
       "prevention": "Rogue and burn infected plants immediately. Plant certified CMV-resistant cultivars (e.g., TME 419).",
-      "weather_action_rule": "Hot dry weather (>32°C) accelerates whitefly reproduction; increase vector scouting frequency."
+      "weather_action_rule": "Hot dry weather (>32\u00b0C) accelerates whitefly reproduction; increase vector scouting frequency."
     },
     {
       "id": 4,
@@ -75,7 +75,7 @@
       "organic_treatment": "Soil enrichment with farmyard manure and Trichoderma bio-formulations.",
       "chemical_treatment": "Seed treatment with Thiram 75% WP (3g/kg seed) or Carbendazim (2g/kg seed).",
       "prevention": "Maintain adequate soil moisture during post-flowering to relieve plant drought stress.",
-      "weather_action_rule": "High risk during extended hot (>35°C), drought-stressed periods; schedule emergency light irrigation."
+      "weather_action_rule": "High risk during extended hot (>35\u00b0C), drought-stressed periods; schedule emergency light irrigation."
     },
     {
       "id": 7,
@@ -130,7 +130,7 @@
       "organic_treatment": "Foliar spray with Copper Hydroxide (2g/L) and remove systemic infected plants.",
       "chemical_treatment": "Seed treatment with Metalaxyl-M (Apron XL) @ 2ml/kg, foliar spray of Metalaxyl-Mancozeb @ 2.5g/L.",
       "prevention": "Use resistant maize hybrids and avoid sowing near sorghum fields.",
-      "weather_action_rule": "Dew-laden cool nights (18-22°C) followed by humid mornings trigger sporulation."
+      "weather_action_rule": "Dew-laden cool nights (18-22\u00b0C) followed by humid mornings trigger sporulation."
     },
     {
       "id": 12,
@@ -141,7 +141,7 @@
       "organic_treatment": "Apply rock phosphate with Phosphate Solubilizing Bacteria (PSB). Soil warming with shallow hoeing.",
       "chemical_treatment": "Foliar spray of 19:19:19 (N:P:K) or DAP (2%) solution.",
       "prevention": "Incorporate starter phosphorus fertilizer near seed row during sowing.",
-      "weather_action_rule": "Cold soils (<15°C) restrict root phosphorus uptake; symptoms usually subside as temperatures rise."
+      "weather_action_rule": "Cold soils (<15\u00b0C) restrict root phosphorus uptake; symptoms usually subside as temperatures rise."
     },
     {
       "id": 13,
@@ -218,7 +218,7 @@
       "organic_treatment": "Foliar application of Trichoderma viride (10g/L) and copper hydroxide (2g/L).",
       "chemical_treatment": "Foliar spray with Mancozeb 75% WP (2.5g/L) or Azoxystrobin 18.2% + Difenoconazole 11.4% SC (1ml/L).",
       "prevention": "Use resistant maize hybrids (Ht gene derivatives), crop rotation, and destruction of infected stubble.",
-      "weather_action_rule": "High risk during moderate temperatures (18-27°C) with persistent dew or rainy periods."
+      "weather_action_rule": "High risk during moderate temperatures (18-27\u00b0C) with persistent dew or rainy periods."
     },
     {
       "id": 20,
@@ -229,7 +229,7 @@
       "organic_treatment": "Spray sulfur 80% WDG (3g/L) or biocontrol agent Bacillus subtilis.",
       "chemical_treatment": "Spray Tebuconazole 25.9% EC (1ml/L) or Azoxystrobin (1ml/L) at first sign of pustules.",
       "prevention": "Plant resistant hybrids; plant early in the season to escape peak spore dispersal.",
-      "weather_action_rule": "Cool, humid weather (16-25°C, >95% RH) strongly favors rust infection."
+      "weather_action_rule": "Cool, humid weather (16-25\u00b0C, >95% RH) strongly favors rust infection."
     },
     {
       "id": 21,
@@ -240,7 +240,7 @@
       "organic_treatment": "Spray copper oxychloride (2.5g/L) or neem seed kernel extract (5%). Prune lower infected leaves up to 30cm off the ground.",
       "chemical_treatment": "Foliar spray of Chlorothalonil 75% WP (2g/L) or Difenoconazole 25% EC (0.5ml/L).",
       "prevention": "Stake plants, mulch soil surface with straw/plastic, avoid overhead irrigation, 3-year crop rotation.",
-      "weather_action_rule": "High humidity (>80%) and warm temperatures (24-29°C) accelerate disease progression."
+      "weather_action_rule": "High humidity (>80%) and warm temperatures (24-29\u00b0C) accelerate disease progression."
     },
     {
       "id": 22,
@@ -251,7 +251,7 @@
       "organic_treatment": "Soil drenching with Pseudomonas fluorescens (10g/L). Incorporate biochar and mustard cake into soil.",
       "chemical_treatment": "Drenching with Streptocycline (100 ppm) + Copper Oxychloride (0.2%).",
       "prevention": "Use grafted seedlings on resistant rootstocks, practice solarization of nursery beds, maintain acidic/neutral balance.",
-      "weather_action_rule": "Warm wet soils (>30°C) with waterlogging create explosive wilt conditions; ensure prompt drainage."
+      "weather_action_rule": "Warm wet soils (>30\u00b0C) with waterlogging create explosive wilt conditions; ensure prompt drainage."
     },
     {
       "id": 23,
@@ -262,7 +262,7 @@
       "organic_treatment": "Spray Bordeaux mixture (1%) or Copper Hydroxide (2g/L). Remove and destroy all blighted vines.",
       "chemical_treatment": "Foliar spray with Cymoxanil 8% + Mancozeb 64% WP (2g/L) or Metalaxyl-M + Mancozeb (2.5g/L).",
       "prevention": "Strictly avoid overhead irrigation; maintain 60cm plant spacing for ventilation; destroy infected plant debris.",
-      "weather_action_rule": "🚨 Critical alert: Cool wet weather (15-20°C, >90% RH) can destroy entire crop within 7-10 days. Spray preventive fungicide immediately before expected rainfall."
+      "weather_action_rule": "\ud83d\udea8 Critical alert: Cool wet weather (15-20\u00b0C, >90% RH) can destroy entire crop within 7-10 days. Spray preventive fungicide immediately before expected rainfall."
     },
     {
       "id": 24,
@@ -284,7 +284,7 @@
       "organic_treatment": "Rogue out infected plants. Dip hands and tools in skim milk or 20% trisodium phosphate during handling.",
       "chemical_treatment": "No chemical cure for viral infections. Apply micronutrient and humic acid foliar spray to boost plant vigor.",
       "prevention": "Use certified virus-free seeds, avoid smoking/tobacco handling near plants, disinfect trellis wires and stakes.",
-      "weather_action_rule": "High temperatures (>30°C) intensify mosaic symptom expression."
+      "weather_action_rule": "High temperatures (>30\u00b0C) intensify mosaic symptom expression."
     },
     {
       "id": 26,
@@ -296,6 +296,105 @@
       "chemical_treatment": "Foliar spray for whitefly vector: Cyantraniliprole 10.26% OD (1.8ml/L) or Spiromesifen 22.9% SC (1ml/L).",
       "prevention": "Grow seedlings under 40-mesh insect-proof nylon nets, use resistant hybrids (e.g. Ty-1/Ty-3 genes), install reflective silver mulch.",
       "weather_action_rule": "Dry, hot weather triggers explosive whitefly proliferation; initiate vector control immediately."
+    },
+    {
+      "crop": "Potato",
+      "disease_name": "Potato Early blight",
+      "symptoms": "Brown, dark circular to angular spots with characteristic concentric target-board rings on older foliage, yellowing surrounding tissue.",
+      "pathogen": "Alternaria solani (Fungal)",
+      "organic_treatment": "Foliar spray of Copper Hydroxide (2g/L) or neem-based biopesticide (5ml/L). Remove diseased lower canopy leaves.",
+      "chemical_treatment": "Foliar spray with Mancozeb 75% WP (2.5g/L) or Chlorothalonil 75% WP (2g/L) or Azoxystrobin (1ml/L).",
+      "prevention": "Practice 3-year solanaceous crop rotation, certified disease-free seed tubers, avoid sprinkler irrigation.",
+      "weather_action_rule": "Warm temperatures (24-29\u00b0C) with alternating dry and wet periods trigger rapid spore release.",
+      "id": 27
+    },
+    {
+      "crop": "Potato",
+      "disease_name": "Potato Late blight",
+      "symptoms": "Water-soaked irregular dark green to purplish-black lesions starting at leaf tips and margins, white cottony mold on underside in humid conditions.",
+      "pathogen": "Phytophthora infestans (Oomycete)",
+      "organic_treatment": "Bordeaux mixture (1%) or Copper Oxychloride (2.5g/L). Destroy infected haulms 10 days before harvest.",
+      "chemical_treatment": "Foliar spray with Cymoxanil 8% + Mancozeb 64% WP (2g/L) or Metalaxyl-M + Mancozeb (2.5g/L) or Dimethomorph 50% WP (1g/L).",
+      "prevention": "Hill up soil around tubers (prevent wash-down of zoospores), use resistant cultivars (Kufri Jyoti, Kufri Girdhari).",
+      "weather_action_rule": "\ud83d\udea8 High risk: Cool wet weather (12-22\u00b0C, RH >90%). Apply protective fungicide immediately before rain.",
+      "id": 28
+    },
+    {
+      "crop": "Potato",
+      "disease_name": "Potato healthy",
+      "symptoms": "Lush, dark green compound leaves with upright stems and vigorous canopy development without lesions or mottling.",
+      "pathogen": "None (Healthy Crop)",
+      "organic_treatment": "Apply balanced compost, vermicompost, and biofertilizers (Azotobacter & PSB).",
+      "chemical_treatment": "Maintain scheduled NPK (120:80:100 kg/ha) fertilization.",
+      "prevention": "Regular field monitoring, earthing up, weed control, and preventive Trichoderma application.",
+      "weather_action_rule": "Maintain uniform soil moisture at 65-75% field capacity during tuber bulking.",
+      "id": 29
+    },
+    {
+      "crop": "Apple",
+      "disease_name": "Apple Apple scab",
+      "symptoms": "Dull olive-green velvety spots on leaves and fruit, turning dark brown to black and corky with age.",
+      "pathogen": "Venturia inaequalis (Fungal)",
+      "organic_treatment": "Apply lime sulfur (2.5ml/L) or wettable sulfur (3g/L) at green tip stage. Prune canopies to improve air circulation.",
+      "chemical_treatment": "Spray Difenoconazole 25% EC (0.5ml/L) or Captan 50% WP (2g/L) or Dodine 65% WP (1g/L).",
+      "prevention": "Rake and burn fallen autumn leaves (destroys overwintering pseudothecia); plant scab-resistant rootstocks.",
+      "weather_action_rule": "Mills period: Spore infection requires leaf wetness of 9+ hours at 15-24\u00b0C.",
+      "id": 30
+    },
+    {
+      "crop": "Apple",
+      "disease_name": "Apple Cedar apple rust",
+      "symptoms": "Bright yellow-orange circular lesions on upper leaf surfaces with small black dots (pycnia), tube-like aecia on leaf underside.",
+      "pathogen": "Gymnosporangium juniperi-virginianae (Fungal)",
+      "organic_treatment": "Foliar spray of liquid copper or sulfur (3g/L). Remove nearby Eastern red cedar/juniper alternate hosts within 500m.",
+      "chemical_treatment": "Foliar spray with Myclobutanil 10% WP (1g/L) or Mancozeb 75% WP (2.5g/L) during pink-bud through petal fall.",
+      "prevention": "Eradicate wild juniper trees near apple orchards; prune out galls from nearby ornamental cedars.",
+      "weather_action_rule": "Warm spring rains (13-24\u00b0C) trigger gelatinous orange spore horns on cedar galls.",
+      "id": 31
+    },
+    {
+      "crop": "Apple",
+      "disease_name": "Apple Black rot",
+      "symptoms": "Frog-eye leaf spots (purple margins with tan centers), black mummified rotting fruit, and sunken stem cankers.",
+      "pathogen": "Botryosphaeria obtusa (Fungal)",
+      "organic_treatment": "Prune dead wood and remove mummified apples from orchard floor.",
+      "chemical_treatment": "Spray Captan 50% WP (2.5g/L) or Thiophanate-methyl 70% WP (1g/L).",
+      "prevention": "Prune out dead fire-blighted twigs and cankers during winter dormancy.",
+      "weather_action_rule": "Infection peaks during warm humid rainy spells (20-28\u00b0C).",
+      "id": 32
+    },
+    {
+      "crop": "Apple",
+      "disease_name": "Apple healthy",
+      "symptoms": "Vibrant, dark green serrated leaves and firm developing fruit without lesions, mildew, or distortion.",
+      "pathogen": "None (Healthy Crop)",
+      "organic_treatment": "Apply organic mulch and foliar seaweed extract for vigor.",
+      "chemical_treatment": "Maintain standard micronutrient foliar schedule (Boron, Zinc, Calcium).",
+      "prevention": "Regular orchard scouting, pruning for sunlight penetration, integrated pest management.",
+      "weather_action_rule": "Maintain adequate irrigation during fruit sizing.",
+      "id": 33
+    },
+    {
+      "crop": "Pepper",
+      "disease_name": "Pepper bell Bacterial spot",
+      "symptoms": "Small, water-soaked circular to irregular dark brown lesions on leaves and fruit, causing severe defoliation and fruit drop.",
+      "pathogen": "Xanthomonas campestris pv. vesicatoria (Bacterial)",
+      "organic_treatment": "Foliar spray of Copper Hydroxide (2g/L) combined with Bacillus amyloliquefaciens biocontrol.",
+      "chemical_treatment": "Spray Copper Oxychloride (2.5g/L) mixed with Streptocycline (100 ppm) at 10-day intervals.",
+      "prevention": "Use hot-water-treated certified seeds, avoid overhead sprinkler irrigation, rotate with non-solanaceous crops.",
+      "weather_action_rule": "Rainstorms with wind (>15 km/h) and warm temperatures (24-30\u00b0C) cause severe bacterial splash spread.",
+      "id": 34
+    },
+    {
+      "crop": "Pepper",
+      "disease_name": "Pepper bell healthy",
+      "symptoms": "Dark green, smooth, glossy foliage with strong branch development and healthy flower set.",
+      "pathogen": "None (Healthy Crop)",
+      "organic_treatment": "Apply balanced vermicompost and neem cake at 45-day intervals.",
+      "chemical_treatment": "Apply balanced NPK (100:60:60 kg/ha) with calcium nitrate side-dressing.",
+      "prevention": "Scout weekly for thrips and aphids vectors; maintain raised beds for drainage.",
+      "weather_action_rule": "Maintain drip irrigation at 70% soil water capacity.",
+      "id": 35
     }
   ]
 }
