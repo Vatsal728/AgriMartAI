@@ -146,24 +146,8 @@ class AgronomyRetriever:
                 "source": "ICAR/TNAU Standard Agronomy Database (ChromaDB Vector Store)"
             }
 
-        # Fallback structured protocol for zero-None guarantee
-        crop_guess = target_crop.capitalize() if target_crop else (disease_or_query.split()[0] if disease_or_query else "Crop")
-        return {
-            "disease_name": disease_or_query,
-            "crop": crop_guess,
-            "retrieved_context": f"Crop: {crop_guess}\nDisease Name: {disease_or_query}\nPathogen: Plant Pathogen\nSymptoms: Foliar lesions, chlorosis, and vigor reduction.\nOrganic Treatment Remedies: Foliar spray with Copper Hydroxide (2g/L) or Neem formulation (5ml/L).\nChemical Treatment Controls: Foliar spray with Mancozeb 75% WP (2.5g/L) or Chlorothalonil (2g/L).\nPrevention Protocols: Maintain field sanitation, wide spacing, and balanced NPK nutrition.\nWeather & Environmental Rules: Halt chemical spraying if rain is forecasted within 4 hours.",
-            "details": {
-                "crop": crop_guess,
-                "disease_name": disease_or_query,
-                "pathogen": "Agricultural Plant Pathogen",
-                "symptoms": "Foliar lesions, spots, or chlorosis on affected plant tissues.",
-                "organic_treatment": "Foliar spray of Copper Hydroxide (2g/L) or Neem Seed Kernel Extract (5%).",
-                "chemical_treatment": "Foliar spray with Mancozeb 75% WP (2.5g/L) or Chlorothalonil (2g/L).",
-                "prevention": "Maintain field sanitation, wide row spacing, and crop rotation.",
-                "weather_action_rule": "Halt chemical spraying if heavy rainfall is forecasted within 4 hours."
-            },
-            "source": "ICAR/TNAU Standard Agronomy Database (ChromaDB Vector Store)"
-        }
+        return None
+
 
     def search_qa_database(self, query: str, n_results: int = 2) -> List[Dict[str, str]]:
         """
@@ -225,17 +209,34 @@ class AgronomyRetriever:
         q_lower = query.lower()
         # 0. Conversational Intent Gatekeeper (Greetings, Identity, Capabilities)
         clean_q = re.sub(r'[^a-zA-Z0-9\s]', '', q_lower).strip()
-        greetings = {"hi", "hello", "hey", "hola", "namaste", "pranam", "good morning", "good afternoon", "good evening"}
-        pleasantries = {"how are you", "how r u", "how do you do", "whats up", "what is up"}
-        identity_help = {"who are you", "what are you", "what can you do", "help", "menu", "capabilities", "what is agrismart", "features"}
-        thanks = {"thanks", "thank you", "dhanyawad", "shukriya", "thx"}
+        
+        # Security & Jailbreak Refusal Guardrail
+        security_triggers = [
+            "hack", "crack", "exploit", "malware", "virus", "password", "bypass", "ddos",
+            "injection", "ignore previous instructions", "play a roleplay", "dan mode", "jailbreak"
+        ]
+        if any(trig in q_lower for trig in security_triggers) and not any(ag in q_lower for ag in ["virus in", "leaf curl", "mosaic"]):
+            return {
+                "response": "🛑 **Security & Safety Guardrail:** I am programmed exclusively as an agricultural and crop protection advisor trained on Indian agronomy standards. I cannot assist with cybersecurity, hacking, exploits, or non-agricultural tasks. Please feel free to ask any crop health, disease management, or agronomy questions.",
+                "type": "security_refusal",
+                "source": "AgriSmart AI Safety Core"
+            }
 
-        if clean_q in greetings or clean_q in pleasantries:
+        greetings_words = {"hi", "hello", "hey", "hola", "namaste", "pranam", "good morning", "good afternoon", "good evening"}
+        pleasantries_words = {"how are you", "how r u", "how do you do", "whats up", "what is up"}
+        identity_words = {"who are you", "what are you", "what can you do", "help", "menu", "capabilities", "what is agrismart", "features"}
+        thanks_words = {"thanks", "thank you", "dhanyawad", "shukriya", "thx"}
+
+        is_greeting = any(g in clean_q.split() for g in ["hi", "hello", "hey", "namaste"]) or clean_q in greetings_words or clean_q in pleasantries_words
+        is_identity = any(id_phrase in clean_q for id_phrase in identity_words)
+
+        if is_greeting or is_identity:
             return {
                 "response": (
                     "👋 **Hello! Welcome to AgriSmart AI — Autonomous Crop Health Advisor.**\n\n"
-                    "I am your AI agronomy assistant trained on ICAR, TNAU, and agricultural university protocols.\n\n"
+                    "I am your Senior AI Agronomist trained on verified agricultural and plant pathology standards.\n\n"
                     "**Here is how I can assist your farm:**\n"
+
                     "- 📸 **Crop Leaf Diagnosis:** Upload an image using the `+` button to diagnose diseases instantly.\n"
                     "- 🐛 **Pest & Disease Control:** Ask for chemical dosages, organic remedies, or spray schedules (e.g., *'Sugarcane aphids control'*).\n"
                     "- 🌾 **Crop Varieties & Cultivation:** Ask for high-yield seeds and NPK fertilizer doses (e.g., *'High yield Okra varieties'*).\n"
@@ -246,42 +247,32 @@ class AgronomyRetriever:
                 "source": "AgriSmart Conversational AI Core"
             }
 
-        if clean_q in identity_help:
-            return {
-                "response": (
-                    "🌱 **AgriSmart AI Capabilities & Agronomy Services:**\n\n"
-                    "1. **Computer Vision Leaf Diagnostics (Cloud & Mobile Edge)**: Classifies 38 distinct crop disease conditions with >99.7% accuracy.\n"
-                    "2. **Evidence-Grounded RAG Engine**: Retrieves official ICAR / TNAU chemical and organic dosage protocols.\n"
-                    "3. **25,410+ Farmer Advisory Knowledge Base**: Resolves agronomy, insect vector, and fertilization queries.\n"
-                    "4. **Agrometeorological Spray Planner**: Computes real-time spray safety using satellite precipitation, wind drift, and FAO-56 evapotranspiration models.\n\n"
-                    "💡 *Try asking: 'How to treat Tomato Early Blight?' or upload an affected leaf image below!*"
-                ),
-                "type": "identity",
-                "source": "AgriSmart System Architecture"
-            }
-
-        if clean_q in thanks:
+        if clean_q in thanks_words:
             return {
                 "response": "🌾 **You're very welcome!** Happy farming and high yields to you. Let me know if you need anything else for your crops!",
                 "type": "thanks",
                 "source": "AgriSmart Conversational AI Core"
             }
 
+
         # 1. Weather / Spray Window Inquiry (Disambiguated from pest control)
         weather_keywords = [
-            "weather", "rain", "wind", "forecast", "climate", "temperature", "humidity",
-            "soil moisture", "evapotranspiration", "irrigate", "irrigation",
+            "weather", "rain", "barish", "wind", "hawa", "forecast", "climate", "mausam", "temperature", "humidity",
+            "soil moisture", "evapotranspiration", "irrigate", "irrigation", "pani",
             "spray window", "safe to spray", "suitable for spray", "suitable for foliar",
-            "can i spray", "should i spray", "spray today", "spray tomorrow", "spray weather"
-        ]
-        pest_keywords_query = [
-            "what pesticide", "which pesticide", "what chemical", "which insecticide",
-            "spray to control", "pesticide to control", "how to control", "how to treat",
-            "control of", "dosage of", "dose of", "remedy for", "cure for", "pink bollworm"
+            "can i spray", "should i spray", "spray today", "spray tomorrow", "spray weather", "spray now",
+            "sprey", "chhidkav", "today", "aaj"
         ]
         
-        is_pest_query = any(pk in q_lower for pk in pest_keywords_query)
-        is_weather_query = any(wk in q_lower for wk in weather_keywords) and not (is_pest_query and not any(w in q_lower for w in ["weather", "rain", "wind", "forecast", "suitable", "today", "tomorrow"]))
+        # Check if query asks whether to spray now/today or mentions weather/rain
+        is_spray_timing_query = any(phrase in q_lower for phrase in [
+            "should i spray", "should i sprey", "can i spray", "can i sprey", "spray today", "sprey today",
+            "spray now", "sprey now", "spray medicine", "sprey medicine", "weather in", "mausam",
+            "chhidkav kare", "dawa chhidkav", "safe to spray", "spray or not"
+        ])
+        
+        is_weather_query = is_spray_timing_query or any(wk in q_lower for wk in weather_keywords)
+
 
         if is_weather_query:
             # Check if a specific city is mentioned in the query
@@ -349,8 +340,21 @@ class AgronomyRetriever:
         
         # 3. Check for Expert Q&A Matches
         qa_hits = self.search_qa_database(query, n_results=2)
+
+        # 4. Generate with Fine-Tuned Local LLM (if available) for expert conversational synthesis
+        from src.advisor.agri_llm_engine import get_agri_llm
+        llm_engine = get_agri_llm()
+        llm_answer = ""
+        if llm_engine and llm_engine.is_loaded:
+            context_snippet = ""
+            if disease_protocol:
+                d = disease_protocol["details"]
+                context_snippet = f"Disease: {d['disease_name']}, Crop: {d['crop']}, Chemical: {d.get('chemical_treatment', '')}, Organic: {d.get('organic_treatment', '')}, Prevention: {d.get('prevention', '')}"
+            elif qa_hits:
+                context_snippet = " | ".join([f"Q: {h.get('question','')} A: {h.get('answer','')}" for h in qa_hits])
+            llm_answer = llm_engine.generate_advisory(query, context=context_snippet)
         
-        # 4. Synthesize Polished Response
+        # 5. Synthesize Polished Response
         resp_parts = []
         
         # If we have a specific disease protocol (e.g. Tomato Early Blight)
@@ -364,6 +368,10 @@ class AgronomyRetriever:
             resp_parts.append(f"🛡️ **Field Prevention & Sanitation:**\n{d.get('prevention', 'N/A')}\n")
             if d.get('weather_action_rule'):
                 resp_parts.append(f"🌦️ **Weather Alert Rule:**\n{d['weather_action_rule']}\n")
+            # Add LLM commentary if clean and distinct
+            if llm_answer and len(llm_answer) > 20 and not any(header in llm_answer for header in ["1. Diagnosis", "2. Targeted Chemical"]):
+                resp_parts.append(f"🌱 **Senior Agronomist Field Insights:**\n{llm_answer}\n")
+
                 
         # If we have targeted Q&A hits from the 25k database
         elif qa_hits:
@@ -373,7 +381,6 @@ class AgronomyRetriever:
             
             for idx, hit in enumerate(qa_hits, 1):
                 ans = hit.get("answer", "").strip()
-                # Clean and capitalize answer
                 if ans.startswith("suggested to "):
                     ans = "Recommended to " + ans[13:]
                 elif ans.startswith("advised to "):
@@ -384,6 +391,12 @@ class AgronomyRetriever:
                 
                 resp_parts.append(f"💡 **Recommended Action #{idx}:**\n{ans}\n")
                 
+            if llm_answer and len(llm_answer) > 20 and not any(header in llm_answer for header in ["1. Diagnosis", "2. Targeted Chemical"]):
+                resp_parts.append(f"🌱 **Agronomist Synthesis:**\n{llm_answer}\n")
+                
+        elif llm_answer and len(llm_answer) > 20:
+            resp_parts.append(f"### 🌾 AgriSmart Expert Advisory\n")
+            resp_parts.append(f"{llm_answer}\n")
         else:
             # Fallback for general queries
             resp_parts.append(f"### 🌾 Agronomic Guidance for **{query}**\n")
@@ -395,7 +408,7 @@ class AgronomyRetriever:
             )
             
         final_text = "\n".join(resp_parts)
-        source = disease_protocol["source"] if disease_protocol else "ICAR/TNAU & Agronomy Expert Knowledge Base"
+        source = disease_protocol["source"] if disease_protocol else "ICAR/TNAU Standard Protocols"
         final_text += f"\n\n*(Grounded by: {source})*"
         
         return {

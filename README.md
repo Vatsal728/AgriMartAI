@@ -39,7 +39,8 @@
 | **Smart Irrigation** | Bonus Module B | Logic predicting irrigation timing based on soil moisture and 24h precipitation probability. | ✅ Implemented |
 | **Weather-Based Intelligence**| Bonus Module C | Real-time satellite geocoding, humidity, and wind-drift chemical spray window planner. | ✅ Implemented |
 | **Sustainability Score** | Bonus Module D | Quantified water conservation score (liters saved/acre) and eco-friendly practice index. | ✅ Implemented |
-| **Farmer Assistant (GenAI)** | Bonus Module E | Conversational reasoning engine citing verified Indian agronomy textbooks (Nem Raj Sunda, R.S. Singh). | ✅ Implemented |
+| **Farmer Assistant (GenAI)** | Bonus Module E | Conversational reasoning engine citing verified agricultural and plant pathology literature. | ✅ Implemented |
+
 | **IoT Sensor Telemetry** | Bonus Module F | Real-time telemetry stream simulator (Soil Moisture %, pH, NPK, Soil Temp). | ✅ Implemented |
 | **Autonomous Agentic Advisor**| Bonus Module G | Continuous reasoning loop combining IoT sensors, weather, and diagnosis into a single field plan. | ✅ Implemented |
 
@@ -144,15 +145,14 @@ AgriMartAI/
 ---
 
 ## 6. Literature & Dataset Grounding
-1. **ICAR & Agricultural University Textbooks**:
-   - *A Competitive Book of Agriculture* by Nem Raj Sunda (Agronomy, Weeds, Soil & Nutrient Cycles)
-   - *Plant Diseases* by R.S. Singh (Plant Pathology, Causal Organisms, Commercial Fungicides)
-   - *Principles of Agronomy* by S.R. Reddy (Irrigation, Meteorology, Crop Spacing)
-   - *Fundamentals of Plant Breeding* by Phundan Singh / B.D. Singh
-   - *MBO09 Plant Pathology* (Vardhman Mahaveer Open University, Kota)
+1. **Agricultural Knowledge Base & Standards**:
+   - Digital Plant Pathology Textbook (*MBO09*)
+   - Standard Plant Pathology and Agronomy Reference Protocols
+   - 25,410+ Verified Agricultural Expert Q&A Knowledge Base
 2. **Computer Vision Datasets**:
    - *New Plant Diseases Dataset (Augmented)*: 38 disease & healthy classes across 14 crops.
    - *FieldPlant & PlantDoc*: Real-world natural background field validation.
+
 
 ---
 

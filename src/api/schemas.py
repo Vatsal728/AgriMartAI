@@ -25,4 +25,6 @@ class AdvisoryResponse(BaseModel):
     rag_knowledge: Dict[str, Any]
     environment_telemetry: Dict[str, Any]
     actionable_decisions: Dict[str, Any]
+    llm_expert_advisory: Optional[str] = None
     conversational_summary: str
+

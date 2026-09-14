@@ -103,10 +103,11 @@ def load_specific_model(model_type="efficientnet"):
             return None
     return None
 
-def predict(image_path: str, model_type: str = "efficientnet") -> dict:
+def predict(image_path: str, model_type: str = "efficientnet", user_prompt: str = "") -> dict:
     """
     Core Inference Function.
     Supports model switching: 'efficientnet' (Web API) or 'mobilenet' (Mobile Edge).
+    Supports Context-Aware Crop Re-ranking if farmer specifies the crop in prompt.
     """
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Image not found at path: {image_path}")
@@ -125,8 +126,27 @@ def predict(image_path: str, model_type: str = "efficientnet") -> dict:
             
             with torch.no_grad():
                 outputs = model(img_tensor)
-                probs = F.softmax(outputs, dim=1)
-                top_prob, top_idx = torch.max(probs, 1)
+                probs = F.softmax(outputs, dim=1).squeeze(0)
+                
+                # Check if farmer explicitly mentioned a crop in prompt (e.g., 'tomato', 'potato', 'apple', 'grape')
+                crop_boost_key = None
+                if user_prompt:
+                    p_low = user_prompt.lower()
+                    for c_name in ["tomato", "tamatar", "potato", "aloo", "corn", "maize", "makka", "apple", "seb", "grape", "angoor", "pepper", "chilli", "mirch", "cherry", "peach", "strawberry", "soybean", "squash", "orange", "blueberry", "raspberry"]:
+                        if c_name in p_low:
+                            crop_boost_key = "Pepper,_bell" if c_name in ["pepper", "chilli", "mirch"] else ("Corn_(maize)" if c_name in ["corn", "maize", "makka"] else ("Tomato" if c_name in ["tomato", "tamatar"] else ("Potato" if c_name in ["potato", "aloo"] else c_name.capitalize())))
+                            break
+                            
+                top_prob, top_idx = torch.max(probs, 0)
+                
+                # If farmer specified a crop and the top prediction was from an unrelated crop (cross-crop confusion due to natural field background), re-rank within that crop
+                if crop_boost_key and _CLASS_NAMES and not _CLASS_NAMES[top_idx.item()].lower().startswith(crop_boost_key.lower()):
+                    crop_indices = [i for i, name in enumerate(_CLASS_NAMES) if name.lower().startswith(crop_boost_key.lower())]
+                    if crop_indices:
+                        crop_probs = probs[crop_indices]
+                        best_sub_idx = torch.argmax(crop_probs).item()
+                        top_idx = torch.tensor(crop_indices[best_sub_idx])
+                        top_prob = probs[top_idx]
                 
                 raw_class = _CLASS_NAMES[top_idx.item()] if _CLASS_NAMES else "Unknown"
                 conf = float(top_prob.item())
@@ -142,6 +162,7 @@ def predict(image_path: str, model_type: str = "efficientnet") -> dict:
                 }
         except Exception as e:
             print(f"[Inference Error]: {e}")
+
             
     return {
         "disease": "Tomato Early Blight",

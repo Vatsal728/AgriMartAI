@@ -22,6 +22,58 @@ if ROOT_DIR not in sys.path:
 
 import streamlit as st
 import streamlit.components.v1 as components
+import re
+
+def format_agronomist_field_assessment(text: str) -> str:
+    """
+    Parses any numbered raw LLM advisory string (e.g. '1. Diagnosis & Pathogen: ... 2. Targeted Chemical ...')
+    into distinct, beautifully formatted bullet sections with icons and clean typography.
+    """
+    if not text or not text.strip():
+        return ""
+    text = text.strip()
+    if text.startswith("Answer:"):
+        text = text[7:].strip()
+        
+    pattern = r'(?:^|\s)(?:(1\.\s*Diagnosis & Pathogen|2\.\s*Targeted Chemical Control|3\.\s*Organic\s*(?:/|–|-)?\s*(?:Biological|Agricultural)?\s*Alternative|4\.\s*Live Weather\s*(?:&|and)?\s*Cultural Prevention|\b[1-4]\.\s+[A-Z][A-Za-z\s/&–-]+):\s*)'
+    parts = re.split(pattern, text)
+    
+    if len(parts) > 2:
+        formatted_html = []
+        i = 1
+        while i < len(parts):
+            header = parts[i].strip() if parts[i] else ""
+            content = parts[i+1].strip() if i+1 < len(parts) and parts[i+1] else ""
+            h_lower = header.lower()
+            if "diagnosis" in h_lower or "pathogen" in h_lower:
+                icon = "🔍"
+                title = "Diagnosis & Symptoms"
+            elif "chemical" in h_lower or "control" in h_lower:
+                icon = "🧪"
+                title = "Targeted Chemical Action"
+            elif "organic" in h_lower or "bio" in h_lower:
+                icon = "🌿"
+                title = "Organic & Biological Care"
+            elif "weather" in h_lower or "cultural" in h_lower or "prevention" in h_lower:
+                icon = "🌦️"
+                title = "Live Weather & Cultural Care"
+            else:
+                icon = "📌"
+                title = re.sub(r'^\d+\.\s*', '', header).rstrip(':')
+                
+            content = re.sub(r'^(The predicted (disease|cause|model|result|crop) is|Likely cause:)\s*', '', content, flags=re.IGNORECASE).strip()
+            if content:
+                formatted_html.append(
+                    f'<div style="margin-bottom:8px; line-height:1.55;">'
+                    f'<span style="font-weight:700; color:#0f766e;">{icon} {title}:</span> '
+                    f'<span style="color:#1e293b;">{content}</span>'
+                    f'</div>'
+                )
+            i += 2
+        if formatted_html:
+            return "".join(formatted_html)
+            
+    return f'<div style="line-height:1.55; color:#1e293b;">{text}</div>'
 
 # 1. Page Configuration
 st.set_page_config(
@@ -199,6 +251,30 @@ with st.sidebar:
     
     st.caption(f"**Dominant Soil (ICAR):** {inferred_soil['inferred_soil']} ({inferred_soil['detailed_texture']})")
     
+    st.subheader("🌾 Crop Focus / Filter (Optional)")
+    crop_filter_choice = st.selectbox(
+        "Target Crop:",
+        [
+            "🔍 Auto-Detect from Image & Chat",
+            "🍅 Tomato (Tamatar)",
+            "🥔 Potato (Aloo)",
+            "🌽 Corn / Maize (Makka)",
+            "🍎 Apple (Seb)",
+            "🍇 Grape (Angoor)",
+            "🌶️ Pepper / Chilli (Mirch)",
+            "🍓 Strawberry",
+            "🍑 Peach",
+            "🍒 Cherry",
+            "🌱 Soybean",
+            "🎃 Squash / Pumpkin",
+            "🌿 Cassava"
+        ],
+        help="Locks the diagnosis to a specific crop if background mulch or soil causes glare"
+    )
+    selected_crop_hint = ""
+    if crop_filter_choice != "🔍 Auto-Detect from Image & Chat":
+        selected_crop_hint = crop_filter_choice.split()[1]
+
     st.markdown("---")
     st.subheader("🤖 AI Vision Backbone")
     model_choice = st.selectbox(
@@ -215,6 +291,8 @@ with st.sidebar:
     if st.button("🗑️ Clear Chat History", width='stretch'):
         st.session_state["chat_history"] = []
         st.rerun()
+
+
 
 # HTML5 GPS Auto-Request Bridge
 components.html("""
@@ -303,11 +381,15 @@ if active_image_path and (len(st.session_state["chat_history"]) == 0 or st.sessi
 
     with st.chat_message("assistant", avatar="🌱"):
         with st.spinner(f"Analyzing leaf symptoms with {model_choice.split()[1]} & querying ICAR Knowledge Base..."):
-            pred = predict(active_image_path, model_type=engine_key)
+            prompt_context = f"{selected_crop_hint} {user_text or ''}".strip()
+            pred = predict(active_image_path, model_type=engine_key, user_prompt=prompt_context)
             disease = pred["disease"]
             conf = pred["confidence"]
             crop = pred["crop"]
             is_healthy = "healthy" in disease.lower()
+
+
+
 
             # Retrieve Grounded RAG details
             rag_info = retrieve_agri_guidance(disease)
@@ -331,7 +413,8 @@ if active_image_path and (len(st.session_state["chat_history"]) == 0 or st.sessi
             )
             decisions = advisory["actionable_decisions"]
 
-            # Build Human Agronomist Comprehensive Response (Nem Raj Sunda & R.S. Singh Standards)
+            # Build Human Agronomist Comprehensive Response
+
             status_icon = "✅" if is_healthy else "⚠️"
             details = rag_info.get("details", {}) if rag_info else {}
             
@@ -339,44 +422,71 @@ if active_image_path and (len(st.session_state["chat_history"]) == 0 or st.sessi
             org_rec = details.get("organic_treatment", "Spray Copper Hydroxide (2g/L) or Neem Seed Extract (5ml/L).")
             prev_rec = details.get("prevention", "Maintain 60cm plant spacing and practice crop rotation.")
             
+            # Clean and formulate conversational intro
             custom_intro = ""
             if user_text and user_text.strip() and not any(user_text.strip().lower().startswith(p) for p in ["please diagnose", "diagnose this"]):
-                custom_intro = f"<b>Regarding your question:</b> <i>\"{user_text}\"</i> — here is the complete solution for your farm:<br><br>"
+                custom_intro = f"<b>Regarding your field inquiry:</b> <i>\"{user_text}\"</i><br><br>"
 
-            response_html = f"""<div class="diagnosis-bubble">
-<b style="font-size:1.15rem;">{status_icon} Diagnosis: {disease} ({conf*100:.1f}% Confidence)</b><br>
-📍 <b>Location:</b> {geo['name']} | <b>Soil:</b> {inferred_soil['inferred_soil']} | <b>AI Model:</b> <code>{engine_key}</code>
+            llm_text = advisory.get("llm_expert_advisory", "").strip()
+            if not llm_text:
+                llm_text = f"Visual symptoms indicate <b>{disease}</b>. Implement the targeted chemical and biological treatments below while observing live weather spray windows."
+
+            # Check spray status emoji & color
+            spray_badge = "🚨 <b>HOLD SPRAY</b>" if "HOLD" in decisions['chemical_spray_window'] else ("⚠️ <b>HIGH DRIFT RISK</b>" if "DRIFT" in decisions['chemical_spray_window'] else "✅ <b>OPTIMAL SPRAY WINDOW</b>")
+            irr_badge = "🚨 <b>DELAY IRRIGATION</b>" if "DELAY" in decisions['smart_irrigation'] else ("💧 <b>IRRIGATE NOW</b>" if "NOW" in decisions['smart_irrigation'] else "✅ <b>OPTIMAL MOISTURE</b>")
+
+            formatted_assessment = format_agronomist_field_assessment(llm_text)
+
+            response_html = f"""<div class="diagnosis-bubble" style="background:#ffffff; border-radius:12px; padding:18px 20px; border:1px solid #e2e8f0; border-left:6px solid #16a34a; box-shadow:0 4px 12px rgba(0,0,0,0.04); margin-bottom:12px;">
+<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+    <span style="font-size:1.2rem; font-weight:800; color:#15803d;">{status_icon} {disease}</span>
+    <span style="font-size:0.9rem; font-weight:700; color:#0f766e; background:#f0fdfa; padding:3px 10px; border-radius:20px; border:1px solid #ccfbf1;">Confidence: {conf*100:.1f}%</span>
+</div>
+<div style="font-size:0.88rem; color:#64748b; margin-bottom:12px;">
+    📍 <b>Farm:</b> {geo['name']} &nbsp;|&nbsp; 🌾 <b>Crop:</b> {crop} &nbsp;|&nbsp; 🛰️ <b>Satellite Rain Risk:</b> {live_weather['rain_probability_pct']}% &nbsp;|&nbsp; 💨 <b>Wind:</b> {live_weather['wind_speed_kmh']} km/h
 </div>
 
-<div class="answer-bubble" style="background:#f0fdf4; color:#14532d; border-radius:12px; padding:18px 22px; border:1px solid #bbf7d0; border-left:6px solid #16a34a; margin-top:10px; margin-bottom:12px;">
-<b style="color:#15803d; font-size:1.1rem;">👨‍🌾 Field Action Plan & Treatment Protocol:</b><br><br>
-{custom_intro}
-🧪 <b>1. Targeted Chemical Control:</b><br>
-• {chem_rec}<br><br>
-
-🌿 <b>2. Organic & Bio-Control Alternative:</b><br>
-• {org_rec}<br><br>
-
-🛡️ <b>3. Field Sanitation & Cultural Prevention:</b><br>
-• {prev_rec}<br><br>
-
-🌦️ <b>4. Live Agrometeorological Action ({geo['name']}):</b><br>
-• {decisions['chemical_spray_window']}<br>
-• <b>💧 Irrigation Timing:</b> {decisions['smart_irrigation']}
+<div style="background:#f8fafc; border-left:4px solid #3b82f6; padding:12px 14px; border-radius:8px; font-size:0.94rem; color:#1e293b; line-height:1.6; margin-bottom:14px;">
+    <div style="font-weight:800; color:#1e293b; margin-bottom:6px;">👨‍🌾 Senior Agronomist Field Assessment:</div>
+    {custom_intro}{formatted_assessment}
 </div>
 
-<details style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; margin-top:10px; cursor:pointer;">
-<summary style="font-weight:700; color:#475569; font-size:0.95rem;">🔬 View In-Depth Agronomy & Pathogen Biology</summary>
-<div style="margin-top:10px; font-size:0.92rem; color:#334155; line-height:1.6;">
-• <b>Causal Pathogen:</b> <i>{details.get('pathogen', 'N/A')}</i><br>
-• <b>Visual Symptomatology:</b> {details.get('symptoms', 'N/A')}<br>
-• <b>Epidemiology & Infection Rule:</b> {details.get('weather_action_rule', 'N/A')}<br>
-• <b>Sustainability Score:</b> <b>{decisions['sustainability_index']}</b> (Est. water conserved: {decisions['water_conservation_estimate_liters']} L/acre)<br>
-• <b>Grounded Reference Sources:</b> <i>ICAR/TNAU Plant Pathology Standards & ChromaDB Agronomy Vector Index</i>
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:10px; margin-bottom:14px;">
+    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:12px 14px;">
+        <b style="color:#15803d; font-size:0.95rem;">🧪 Targeted Chemical Remedy</b><br>
+        <span style="font-size:0.9rem; color:#14532d; line-height:1.5;">{chem_rec}</span>
+    </div>
+    <div style="background:#f0fdfa; border:1px solid #99f6e4; border-radius:10px; padding:12px 14px;">
+        <b style="color:#0f766e; font-size:0.95rem;">🌿 Bio-Control & Organic Alternative</b><br>
+        <span style="font-size:0.9rem; color:#134e4a; line-height:1.5;">{org_rec}</span>
+    </div>
+    <div style="background:#fefce8; border:1px solid #fef08a; border-radius:10px; padding:12px 14px;">
+        <b style="color:#854d0e; font-size:0.95rem;">🌦️ Chemical Spray Decision ({geo['name']})</b><br>
+        <span style="font-size:0.9rem; color:#713f12; line-height:1.5;">{spray_badge}: {decisions['chemical_spray_window'].replace('⚠️ HOLD CHEMICAL SPRAY: ', '').replace('⚠️ HIGH DRIFT RISK: ', '').replace('✅ FAVORABLE SPRAY WINDOW: ', '')}</span>
+    </div>
+    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+        <b style="color:#334155; font-size:0.95rem;">💧 Smart Irrigation & Moisture</b><br>
+        <span style="font-size:0.9rem; color:#1e293b; line-height:1.5;">{irr_badge}: {decisions['smart_irrigation'].replace('🚨 DELAY IRRIGATION: ', '').replace('💧 IRRIGATE NOW: ', '').replace('✅ OPTIMAL MOISTURE: ', '')}</span>
+    </div>
 </div>
-</details>"""
+
+<div style="background:#fdf4ff; border:1px solid #f5d0fe; border-radius:8px; padding:10px 14px; font-size:0.88rem; color:#701a75; margin-bottom:12px;">
+    🛡️ <b>Field Prevention & Sanitation:</b> {prev_rec}
+</div>
+
+<details style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; font-size:0.88rem; color:#475569; cursor:pointer;">
+    <summary style="font-weight:700; color:#334155;">🔬 Pathogen Biology, Sustainability & Verification</summary>
+    <div style="margin-top:8px; line-height:1.6;">
+        • <b>Causal Organism:</b> <i>{details.get('pathogen', 'N/A')}</i><br>
+        • <b>Visual Symptomatology:</b> {details.get('symptoms', 'N/A')}<br>
+        • <b>Sustainability Index:</b> <b>{decisions['sustainability_index']}</b> (Est. water conserved: {decisions['water_conservation_estimate_liters']} L/acre)<br>
+        • <b>Grounded Standards:</b> <i>ICAR/TNAU Plant Pathology Standards & ChromaDB Agronomy Vector Index</i>
+    </div>
+</details>
+</div>"""
             st.markdown(response_html, unsafe_allow_html=True)
             st.session_state["chat_history"].append({"role": "assistant", "content": response_html})
+
 
 # B. If Text Question was Submitted
 elif query_to_run:
