@@ -151,10 +151,23 @@ def geocode_location(location_name: str) -> Dict[str, Any]:
         "region": "India (Default Agricultural Zone)"
     }
 
+import time
+_LIVE_WEATHER_CACHE = {}
+
 def fetch_live_agri_weather(lat: float, lon: float, location_name: str = "Field Location") -> Dict[str, Any]:
     """
     Fetch comprehensive atmospheric, soil, and FAO-56 Penman-Monteith Evapotranspiration data from Open-Meteo.
+    Cached for 5 minutes to ensure instant response time.
     """
+    global _LIVE_WEATHER_CACHE
+    cache_key = f"{round(lat, 2)}_{round(lon, 2)}"
+    now = time.time()
+    
+    if cache_key in _LIVE_WEATHER_CACHE:
+        cached_time, cached_data = _LIVE_WEATHER_CACHE[cache_key]
+        if now - cached_time < 300:  # 5 min TTL
+            return cached_data
+            
     url = (
         f"https://api.open-meteo.com/v1/forecast?"
         f"latitude={lat}&longitude={lon}&"
@@ -165,7 +178,7 @@ def fetch_live_agri_weather(lat: float, lon: float, location_name: str = "Field 
     )
     
     try:
-        resp = requests.get(url, timeout=7)
+        resp = requests.get(url, timeout=4)
         if resp.status_code == 200:
             raw = resp.json()
             curr = raw.get("current", {})
@@ -205,7 +218,7 @@ def fetch_live_agri_weather(lat: float, lon: float, location_name: str = "Field 
             soil_moisture_pct = max(10.0, min(95.0, soil_moisture_pct))
             root_zone_moisture_pct = round(root_soil * 100.0, 1)
 
-            return {
+            result = {
                 "source": "Open-Meteo Satellite & FAO-56 Models (Live)",
                 "status": "success",
                 "location": location_name,
@@ -225,6 +238,8 @@ def fetch_live_agri_weather(lat: float, lon: float, location_name: str = "Field 
                 "conditions": weather_desc,
                 "is_real_data": True
             }
+            _LIVE_WEATHER_CACHE[cache_key] = (now, result)
+            return result
     except Exception as e:
         print(f"[WeatherService] Live API fetch exception: {e}")
 
