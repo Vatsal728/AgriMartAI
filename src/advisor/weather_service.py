@@ -11,19 +11,51 @@ Fetches:
 import requests
 from typing import Dict, Any, Optional
 
-# Indian agricultural regions fallback coordinates
+# Indian agricultural regions fallback coordinates & instant cache
 GEOCODE_CACHE = {
     "nashik": {"lat": 19.9975, "lon": 73.7898, "state": "Maharashtra", "crop_hub": "Grape/Onion Capital"},
+    "pune": {"lat": 18.5204, "lon": 73.8567, "state": "Maharashtra", "crop_hub": "Sugarcane/Vegetables"},
+    "mumbai": {"lat": 19.0760, "lon": 72.8777, "state": "Maharashtra", "crop_hub": "Coastal Agriculture"},
+    "nagpur": {"lat": 21.1458, "lon": 79.0882, "state": "Maharashtra", "crop_hub": "Orange City"},
+    "aurangabad": {"lat": 19.8762, "lon": 75.3433, "state": "Maharashtra", "crop_hub": "Cotton/Bajra"},
+    "kolhapur": {"lat": 16.7050, "lon": 74.2433, "state": "Maharashtra", "crop_hub": "Sugarcane Belt"},
+    "solapur": {"lat": 17.6599, "lon": 75.9064, "state": "Maharashtra", "crop_hub": "Pomegranate/Jowar"},
     "ludhiana": {"lat": 30.9010, "lon": 75.8573, "state": "Punjab", "crop_hub": "Wheat/Rice Belt"},
+    "amritsar": {"lat": 31.6340, "lon": 74.8723, "state": "Punjab", "crop_hub": "Wheat/Basmati Rice"},
+    "jalandhar": {"lat": 31.3260, "lon": 75.5762, "state": "Punjab", "crop_hub": "Potato/Maize Hub"},
+    "karnal": {"lat": 29.6857, "lon": 76.9905, "state": "Haryana", "crop_hub": "Basmati Rice/Wheat Hub"},
+    "hisar": {"lat": 29.1492, "lon": 75.7217, "state": "Haryana", "crop_hub": "Cotton/Mustard"},
     "surat": {"lat": 21.1702, "lon": 72.8311, "state": "Gujarat", "crop_hub": "Sugarcane/Vegetables"},
+    "ahmedabad": {"lat": 23.0225, "lon": 72.5714, "state": "Gujarat", "crop_hub": "Cotton/Wheat/Castor"},
     "anand": {"lat": 22.5645, "lon": 72.9289, "state": "Gujarat", "crop_hub": "Tobacco/Dairy/Banana"},
+    "rajkot": {"lat": 22.3039, "lon": 70.8022, "state": "Gujarat", "crop_hub": "Groundnut/Cotton Belt"},
+    "vadodara": {"lat": 22.3072, "lon": 73.1812, "state": "Gujarat", "crop_hub": "Tobacco/Cotton/Paddy"},
+    "bhavnagar": {"lat": 21.7645, "lon": 72.1519, "state": "Gujarat", "crop_hub": "Onion/Groundnut"},
+    "junagadh": {"lat": 21.5222, "lon": 70.4579, "state": "Gujarat", "crop_hub": "Kesar Mango/Groundnut"},
     "guntur": {"lat": 16.3067, "lon": 80.4365, "state": "Andhra Pradesh", "crop_hub": "Chilli/Cotton Capital"},
+    "vijayawada": {"lat": 16.5062, "lon": 80.6480, "state": "Andhra Pradesh", "crop_hub": "Paddy/Mango Belt"},
+    "visakhapatnam": {"lat": 17.6868, "lon": 83.2185, "state": "Andhra Pradesh", "crop_hub": "Sugarcane/Cashew"},
     "shimla": {"lat": 31.1048, "lon": 77.1734, "state": "Himachal Pradesh", "crop_hub": "Apple Bowl of India"},
     "bhopal": {"lat": 23.2599, "lon": 77.4126, "state": "Madhya Pradesh", "crop_hub": "Soybean/Pulses Hub"},
-    "nagpur": {"lat": 21.1458, "lon": 79.0882, "state": "Maharashtra", "crop_hub": "Orange City"},
+    "indore": {"lat": 22.7196, "lon": 75.8577, "state": "Madhya Pradesh", "crop_hub": "Soybean/Wheat Capital"},
+    "ujjain": {"lat": 23.1765, "lon": 75.7885, "state": "Madhya Pradesh", "crop_hub": "Soybean/Gram"},
     "varanasi": {"lat": 25.3176, "lon": 82.9739, "state": "Uttar Pradesh", "crop_hub": "Paddy/Wheat Belt"},
+    "lucknow": {"lat": 26.8467, "lon": 80.9462, "state": "Uttar Pradesh", "crop_hub": "Dasheri Mango/Sugarcane"},
+    "kanpur": {"lat": 26.4499, "lon": 80.3319, "state": "Uttar Pradesh", "crop_hub": "Wheat/Mustard/Pulses"},
+    "meerut": {"lat": 28.9845, "lon": 77.7064, "state": "Uttar Pradesh", "crop_hub": "Sugarcane Capital"},
+    "delhi": {"lat": 28.6139, "lon": 77.2090, "state": "Delhi NCR", "crop_hub": "Agri Trading Hub"},
+    "jaipur": {"lat": 26.9124, "lon": 75.7873, "state": "Rajasthan", "crop_hub": "Mustard/Bajra Hub"},
+    "kota": {"lat": 25.2138, "lon": 75.8648, "state": "Rajasthan", "crop_hub": "Soybean/Coriander Capital"},
+    "jodhpur": {"lat": 26.2389, "lon": 73.0243, "state": "Rajasthan", "crop_hub": "Guar/Cumin/Moong"},
     "bengaluru": {"lat": 12.9716, "lon": 77.5946, "state": "Karnataka", "crop_hub": "Horticulture/Vegetables"},
-    "ahmedabad": {"lat": 23.0225, "lon": 72.5714, "state": "Gujarat", "crop_hub": "Cotton/Wheat/Castor"}
+    "mysore": {"lat": 12.2958, "lon": 76.6394, "state": "Karnataka", "crop_hub": "Silk/Sugarcane/Paddy"},
+    "hyderabad": {"lat": 17.3850, "lon": 78.4867, "state": "Telangana", "crop_hub": "Cotton/Chilli/Rice"},
+    "chennai": {"lat": 13.0827, "lon": 80.2707, "state": "Tamil Nadu", "crop_hub": "Paddy/Coconut"},
+    "coimbatore": {"lat": 11.0168, "lon": 76.9558, "state": "Tamil Nadu", "crop_hub": "Cotton/Poultry/Coconut"},
+    "madurai": {"lat": 9.9252, "lon": 78.1198, "state": "Tamil Nadu", "crop_hub": "Jasmine/Paddy/Pulses"},
+    "kolkata": {"lat": 22.5726, "lon": 88.3639, "state": "West Bengal", "crop_hub": "Jute/Paddy Delta"},
+    "patna": {"lat": 25.5941, "lon": 85.1376, "state": "Bihar", "crop_hub": "Maize/Paddy/Litchi"},
+    "raipur": {"lat": 21.2514, "lon": 81.6296, "state": "Chhattisgarh", "crop_hub": "Rice Bowl of India"}
 }
 
 WMO_WEATHER_CODES = {
@@ -49,17 +81,23 @@ WMO_WEATHER_CODES = {
     96: "Thunderstorm with Hail"
 }
 
+_CACHED_DEVICE_LOCATION = None
+
 def detect_device_location() -> Dict[str, Any]:
-    """Auto-detect user's current city and GPS coordinates using public IP geolocation."""
+    """Auto-detect user's current city and GPS coordinates using public IP geolocation (cached)."""
+    global _CACHED_DEVICE_LOCATION
+    if _CACHED_DEVICE_LOCATION is not None:
+        return _CACHED_DEVICE_LOCATION
+        
     try:
-        resp = requests.get("http://ip-api.com/json/?fields=status,country,regionName,city,lat,lon", timeout=4)
+        resp = requests.get("http://ip-api.com/json/?fields=status,country,regionName,city,lat,lon", timeout=1.5)
         if resp.status_code == 200:
             data = resp.json()
             if data.get("status") == "success":
                 city = data.get("city", "Ahmedabad")
                 region = data.get("regionName", "Gujarat")
                 country = data.get("country", "India")
-                return {
+                _CACHED_DEVICE_LOCATION = {
                     "name": f"{city}, {region}",
                     "city": city,
                     "region": region,
@@ -68,10 +106,11 @@ def detect_device_location() -> Dict[str, Any]:
                     "lon": float(data.get("lon", 72.5714)),
                     "detected_online": True
                 }
-    except Exception as e:
-        print(f"[WeatherService] Auto-location detection fallback: {e}")
+                return _CACHED_DEVICE_LOCATION
+    except Exception:
+        pass
         
-    return {
+    _CACHED_DEVICE_LOCATION = {
         "name": "Ahmedabad, Gujarat",
         "city": "Ahmedabad",
         "region": "Gujarat",
@@ -80,12 +119,13 @@ def detect_device_location() -> Dict[str, Any]:
         "lon": 72.5714,
         "detected_online": False
     }
+    return _CACHED_DEVICE_LOCATION
 
 def reverse_geocode_gps(lat: float, lon: float) -> Dict[str, Any]:
     """Reverse geocode high-precision GPS coordinates into district/state name."""
     try:
         url = f"https://api.bigdatacloud.net/data/reverse-geocode-client?latitude={lat}&longitude={lon}&localityLanguage=en"
-        resp = requests.get(url, timeout=4)
+        resp = requests.get(url, timeout=2.0)
         if resp.status_code == 200:
             d = resp.json()
             locality = d.get("locality") or d.get("city") or d.get("principalSubdivision", "Farm Location")
@@ -101,8 +141,8 @@ def reverse_geocode_gps(lat: float, lon: float) -> Dict[str, Any]:
                 "lon": lon,
                 "is_gps": True
             }
-    except Exception as e:
-        print(f"[WeatherService] GPS reverse geocoding fallback: {e}")
+    except Exception:
+        pass
         
     return {
         "name": f"GPS ({round(lat, 4)}, {round(lon, 4)})",
@@ -116,8 +156,13 @@ def reverse_geocode_gps(lat: float, lon: float) -> Dict[str, Any]:
 
 
 def geocode_location(location_name: str) -> Dict[str, Any]:
-    """Geocode any city/district globally using Open-Meteo Geocoding API."""
+    """Geocode any city/district globally with instant local caching."""
+    if not location_name or not location_name.strip():
+        location_name = "Ahmedabad, Gujarat"
+        
     loc_clean = location_name.strip().lower()
+    
+    # Check exact match
     if loc_clean in GEOCODE_CACHE:
         cached = GEOCODE_CACHE[loc_clean]
         return {
@@ -127,22 +172,40 @@ def geocode_location(location_name: str) -> Dict[str, Any]:
             "region": f"{cached['state']} ({cached['crop_hub']})"
         }
     
-    # Live Geocoding lookup
+    # Check substring match (e.g. "Ahmedabad, Gujarat" matches "ahmedabad")
+    for k, v in GEOCODE_CACHE.items():
+        if k in loc_clean:
+            return {
+                "name": location_name.title(),
+                "lat": v["lat"],
+                "lon": v["lon"],
+                "region": f"{v['state']} ({v['crop_hub']})"
+            }
+    
+    # Live Geocoding lookup with instant caching
     try:
         url = f"https://geocoding-api.open-meteo.com/v1/search?name={requests.utils.quote(location_name)}&count=1&language=en&format=json"
-        resp = requests.get(url, timeout=5)
+        resp = requests.get(url, timeout=2.5)
         if resp.status_code == 200:
             data = resp.json()
             if "results" in data and len(data["results"]) > 0:
                 top = data["results"][0]
-                return {
+                res_obj = {
                     "name": top.get("name", location_name.title()),
-                    "lat": top.get("latitude"),
-                    "lon": top.get("longitude"),
+                    "lat": float(top.get("latitude")),
+                    "lon": float(top.get("longitude")),
                     "region": f"{top.get('admin1', '')}, {top.get('country', '')}".strip(", ")
                 }
-    except Exception as e:
-        print(f"[WeatherService] Geocoding fallback: {e}")
+                # Cache for subsequent instant calls
+                GEOCODE_CACHE[loc_clean] = {
+                    "lat": res_obj["lat"],
+                    "lon": res_obj["lon"],
+                    "state": top.get('admin1', 'India'),
+                    "crop_hub": "Regional Agriculture"
+                }
+                return res_obj
+    except Exception:
+        pass
         
     return {
         "name": location_name.title() if location_name else "Field Location",

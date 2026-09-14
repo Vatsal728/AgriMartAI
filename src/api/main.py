@@ -14,12 +14,13 @@ import os
 import shutil
 import tempfile
 from typing import Optional
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-from src.cv_pipeline.predict import predict
+from src.cv_pipeline.predict import predict, warmup_models
 from src.advisor.agentic_advisor import AgenticAdvisor
 from src.rag_pipeline.retriever import get_global_retriever
 from src.advisor.sensor_stream import IoTSensorSimulator
@@ -33,10 +34,21 @@ from src.api.schemas import (
     FullDiagnosisResponse
 )
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Pre-warm models & cache on startup for sub-100ms instant response
+    try:
+        warmup_models()
+        get_global_retriever()
+    except Exception as e:
+        print(f"[Startup Warning] Warmup failed: {e}")
+    yield
+
 app = FastAPI(
     title="AgriSmart AI API",
     description="Intelligent Agriculture Advisory Platform - SIH 2026",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(

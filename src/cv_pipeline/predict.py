@@ -103,6 +103,21 @@ def load_specific_model(model_type="efficientnet"):
             return None
     return None
 
+def warmup_models():
+    """Preloads and runs a warm-up pass on GPU for instantaneous inference on first request."""
+    import torch
+    device = get_device()
+    for m_type in ["efficientnet", "mobilenet"]:
+        m = load_specific_model(m_type)
+        if m is not None:
+            try:
+                dummy = torch.zeros(1, 3, 224, 224, device=device)
+                with torch.no_grad():
+                    _ = m(dummy)
+            except Exception:
+                pass
+    print(f"[Model Pre-Warm] Vision backbones pre-warmed on {device}")
+
 def predict(image_path: str, model_type: str = "efficientnet", user_prompt: str = "") -> dict:
     """
     Core Inference Function.

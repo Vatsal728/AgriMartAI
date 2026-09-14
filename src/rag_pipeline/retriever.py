@@ -9,7 +9,6 @@ import os
 import re
 import json
 from typing import List, Dict, Any, Optional
-import chromadb
 
 KNOWLEDGE_JSON = os.path.join(os.path.dirname(__file__), "..", "..", "data", "textbooks_structured.json")
 QA_JSON = os.path.join(os.path.dirname(__file__), "..", "..", "data", "agriculture_qa_huggingface.json")

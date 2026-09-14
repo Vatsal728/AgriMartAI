@@ -18,7 +18,6 @@ if ROOT_DIR not in sys.path:
 from src.rag_pipeline.retriever import AgronomyRetriever
 from src.advisor.weather_service import WeatherService
 from src.advisor.sensor_stream import IoTSensorSimulator
-from src.advisor.agri_llm_engine import get_agri_llm
 
 class AgenticAdvisor:
     def __init__(self):

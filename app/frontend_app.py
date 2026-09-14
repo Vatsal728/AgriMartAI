@@ -199,6 +199,14 @@ def load_cached_advisor():
 def load_cached_retriever():
     return get_global_retriever()
 
+@st.cache_data(ttl=300, show_spinner=False)
+def get_cached_weather(lat: float, lon: float, name: str):
+    return fetch_live_agri_weather(lat, lon, name)
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_cached_geocode(loc_name: str):
+    return geocode_location(loc_name)
+
 advisor = load_cached_advisor()
 agronomy_retriever = load_cached_retriever()
 
@@ -260,8 +268,8 @@ with st.sidebar:
         st.warning("⚠️ Location access is OFF / Blocked. Type your District above.")
 
     # Live Satellite & Soil Telemetry
-    geo = geocode_location(active_location)
-    live_weather = fetch_live_agri_weather(geo["lat"], geo["lon"], geo["name"])
+    geo = get_cached_geocode(active_location)
+    live_weather = get_cached_weather(geo["lat"], geo["lon"], geo["name"])
     inferred_soil = infer_soil_from_location(active_location)
     
     st.markdown("---")
