@@ -354,53 +354,11 @@ elif query_to_run:
         st.markdown(query_to_run)
 
     with st.chat_message("assistant", avatar="🌱"):
-        with st.spinner("Searching ChromaDB Agronomy Vector Database..."):
-            query_lower = query_to_run.lower()
-            
-            # Weather & Spray Inquiry
-            if any(w in query_lower for w in ["spray", "irrigate", "weather", "rain", "wind", "water"]):
-                rain_risk = live_weather["rain_probability_pct"] >= 50
-                wind_risk = live_weather["wind_speed_kmh"] > 15
-                
-                resp = f"🌦️ **Live Agrometeorological Assessment for {geo['name']}:**\n\n"
-                resp += f"- **Temperature:** `{live_weather['temperature_c']} °C` | **Humidity:** `{live_weather['humidity_pct']}%`\n"
-                resp += f"- **Precipitation Probability:** `{live_weather['rain_probability_pct']}%` | **Wind:** `{live_weather['wind_speed_kmh']} km/h`\n"
-                resp += f"- **Satellite Soil Moisture (0-9cm):** `{live_weather['soil_moisture_pct']}%` (FAO-56 ET₀: `{live_weather.get('et0_fao_evapotranspiration_mm_day', 4.2)} mm/day`)\n\n"
-                
-                if rain_risk:
-                    resp += "🚨 **Chemical Spray Recommendation:** **HOLD SPRAY.** High probability of precipitation within 24h will wash off foliar chemicals.\n"
-                elif wind_risk:
-                    resp += f"⚠️ **Chemical Spray Recommendation:** **HIGH DRIFT RISK.** Wind speed is {live_weather['wind_speed_kmh']} km/h. Spray early morning when winds are calm (<10 km/h).\n"
-                else:
-                    resp += "✅ **Chemical Spray Recommendation:** **OPTIMAL SPRAY WINDOW.** Calm winds and moderate humidity.\n"
-                    
-                if live_weather['soil_moisture_pct'] < 30:
-                    resp += "\n💧 **Irrigation Advice:** Soil moisture is low. Schedule drip irrigation in early morning."
-                else:
-                    resp += f"\n✅ **Irrigation Advice:** Soil moisture is adequate ({live_weather['soil_moisture_pct']}%). Conserve water."
-                    
-                resp += "\n\n*(Source: Open-Meteo Satellite & FAO-56 Models)*"
-            else:
-                # Vector Search in ChromaDB QA & Textbooks
-                qa_hits = search_agri_qa(query_to_run, n_results=2)
-                disease_guidance = retrieve_agri_guidance(query_to_run)
-                
-                resp = ""
-                if qa_hits:
-                    for hit in qa_hits:
-                        if "Answer:" in hit:
-                            a = hit.split("Answer:")[1].strip()
-                            resp += f"💡 **Expert Solution:**\n{a}\n\n"
-                        else:
-                            resp += f"{hit}\n\n"
-                
-                if "Maintain standard" not in disease_guidance.get("retrieved_context", ""):
-                    resp += f"📖 **ICAR/TNAU Standard Treatment Protocol:**\n\n```\n{disease_guidance['retrieved_context']}\n```\n"
-                    
-                if not resp.strip():
-                    resp = f"Here is the standard agronomic recommendation for **{query_to_run}**:\n\n- Apply balanced NPK fertilizers.\n- Practice crop rotation with leguminous crops.\n- Use certified resistant seeds and consult your local Krishi Vigyan Kendra (KVK)."
-                    
-                resp += f"\n*(Grounded by: {disease_guidance.get('source', 'ChromaDB Agronomy Vector Database')})*"
-
+        with st.spinner("Analyzing with ICAR/TNAU Agronomy Knowledge Engine..."):
+            ans_payload = agronomy_retriever.answer_query(
+                query_to_run,
+                location_context={"weather": live_weather, "geo": geo}
+            )
+            resp = ans_payload["response"]
             st.markdown(resp)
             st.session_state["chat_history"].append({"role": "assistant", "content": resp})

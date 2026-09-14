@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-09-14 10:54:56",
+  "models": {
+    "efficientnet_b0": {
+      "model": "efficientnet",
+      "device": "cuda:0",
+      "total_samples": 1140,
+      "top1_accuracy": 99.74,
+      "top3_accuracy": 100.0,
+      "precision_macro": 99.75,
+      "recall_macro": 99.74,
+      "f1_score_macro": 99.74,
+      "f1_score_weighted": 99.74,
+      "latency_mean_ms": 9.26,
+      "latency_p50_ms": 7.9,
+      "latency_p95_ms": 14.51,
+      "throughput_fps": 107.9,
+      "per_crop_accuracy": {
+        "Apple": 100.0,
+        "Blueberry": 100.0,
+        "Cherry": 100.0,
+        "Corn": 98.33,
+        "Grape": 100.0,
+        "Orange": 100.0,
+        "Peach": 100.0,
+        "Pepper,": 100.0,
+        "Potato": 100.0,
+        "Raspberry": 100.0,
+        "Soybean": 100.0,
+        "Squash": 100.0,
+        "Strawberry": 100.0,
+        "Tomato": 99.67
+      }
+    },
+    "mobilenet_v3": {
+      "model": "mobilenet",
+      "device": "cuda:0",
+      "total_samples": 1140,
+      "top1_accuracy": 99.47,
+      "top3_accuracy": 100.0,
+      "precision_macro": 99.49,
+      "recall_macro": 99.47,
+      "f1_score_macro": 99.47,
+      "f1_score_weighted": 99.47,
+      "latency_mean_ms": 5.8,
+      "latency_p50_ms": 4.93,
+      "latency_p95_ms": 9.5,
+      "throughput_fps": 172.4,
+      "per_crop_accuracy": {
+        "Apple": 100.0,
+        "Blueberry": 100.0,
+        "Cherry": 100.0,
+        "Corn": 98.33,
+        "Grape": 100.0,
+        "Orange": 100.0,
+        "Peach": 100.0,
+        "Pepper,": 100.0,
+        "Potato": 100.0,
+        "Raspberry": 100.0,
+        "Soybean": 100.0,
+        "Squash": 100.0,
+        "Strawberry": 100.0,
+        "Tomato": 98.67
+      }
+    }
+  },
+  "real_world_web_tests": []
+}

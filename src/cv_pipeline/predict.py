@@ -7,6 +7,7 @@ Fulfills Section 4.1 & 7.1:
 """
 
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import sys
 import argparse
 from PIL import Image
