@@ -1,9 +1,0 @@
-[server]
-port = 8502
-headless = false
-enableCORS = false
-enableXsrfProtection = false
-
-[browser]
-serverPort = 8502
-gatherUsageStats = false
