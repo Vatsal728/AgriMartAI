@@ -1,4 +1,4 @@
-# 🌾 AgriSmart AI: Autonomous Crop Health & Precision Agronomy Platform
+  code README.md# 🌾 AgriSmart AI: Autonomous Crop Health & Precision Agronomy Platform
 **Smart India Hackathon (SIH 2026) | L. J. Institute of Engineering and Technology**
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-15803d.svg?logo=python&logoColor=white)](https://www.python.org/)
@@ -190,7 +190,9 @@ Drag and drop or upload any test image using the **`+`** button in the Chat Assi
 - **Institution:** L. J. Institute of Engineering and Technology
 - **Repository:** [Vatsal728/AgriMartAI](https://github.com/Vatsal728/AgriMartAI)
 
+
 ### 🌟 Core Contributors
 | Contributor | Role & Domain | GitHub Profile |
 | :--- | :--- | :---: |
 | **Vatsal Desai** | Lead AI Architect & Full-Stack Systems | [@Vatsal728](https://github.com/Vatsal728) |
+| **Parth Gorasiya** | Frontend Developer | [@ParthGorasiya](https://github.com/ParthGorasiya) |
