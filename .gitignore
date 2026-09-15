@@ -31,6 +31,11 @@ archive.zip
 *.tar.gz
 *.7z
 
+# SQLite Temporary Database Locks & Journals
+data/*.db-wal
+data/*.db-shm
+data/*.db-journal
+
 # Environment & API keys
 .env
 .env.local
@@ -42,6 +47,9 @@ kaggle.json
 *.png
 *.jpg
 *.jpeg
+!frontend/*.png
+!frontend/*.jpg
+!frontend/*.svg
 data/BOOK_DS/*.pdf
 AgriSmart_AI_Master_Plan.md
 
@@ -50,4 +58,3 @@ AgriSmart_AI_Master_Plan.md
 .idea/
 .DS_Store
 Thumbs.db
-
