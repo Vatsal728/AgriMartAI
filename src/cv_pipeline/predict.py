@@ -54,8 +54,9 @@ def load_specific_model(model_type="efficientnet"):
     """Loads a specific model by name: efficientnet (web) or mobilenet (mobile)."""
     global _LOADED_MODELS, _CLASS_NAMES
     
-    if model_type in _LOADED_MODELS:
-        return _LOADED_MODELS[model_type]
+    norm_type = "mobilenet" if "mobilenet" in str(model_type).lower() else "efficientnet"
+    if norm_type in _LOADED_MODELS:
+        return _LOADED_MODELS[norm_type]
         
     device = get_device()
     models_dir = os.path.join(os.path.dirname(__file__), "..", "..", "models")
@@ -69,7 +70,7 @@ def load_specific_model(model_type="efficientnet"):
         "mobilenet": "mobilenet_v3_best.pth"
     }
     
-    pth_file = os.path.join(models_dir, file_map.get(model_type, "efficientnet_b0_best.pth"))
+    pth_file = os.path.join(models_dir, file_map.get(norm_type, "efficientnet_b0_best.pth"))
     if not os.path.exists(pth_file):
         for alt in ["efficientnet_b0_best.pth", "mobilenet_v3_best.pth"]:
             cand = os.path.join(models_dir, alt)
@@ -95,8 +96,8 @@ def load_specific_model(model_type="efficientnet"):
             m.load_state_dict(ckpt["model_state_dict"])
             m = m.to(device)
             m.eval()
-            _LOADED_MODELS[model_type] = m
-            print(f"[Model Loaded] {model_type.upper()} ({os.path.basename(pth_file)}) on {device}")
+            _LOADED_MODELS[norm_type] = m
+            print(f"[Model Loaded] {norm_type.upper()} ({os.path.basename(pth_file)}) on {device}")
             return m
         except Exception as e:
             print(f"[Warning] Failed loading {pth_file}: {e}")
@@ -108,15 +109,15 @@ def warmup_models():
     import torch
     device = get_device()
     for m_type in ["efficientnet", "mobilenet"]:
-        m = load_specific_model(m_type)
-        if m is not None:
-            try:
-                dummy = torch.zeros(1, 3, 224, 224, device=device)
+        try:
+            m = load_specific_model(m_type)
+            if m is not None:
+                dummy = torch.zeros((1, 3, 224, 224), device=device)
                 with torch.no_grad():
                     _ = m(dummy)
-            except Exception:
-                pass
-    print(f"[Model Pre-Warm] Vision backbones pre-warmed on {device}")
+                print(f"[Model Warmup] {m_type.upper()} successfully warmed up on {device}")
+        except Exception as e:
+            print(f"[Model Warmup Notice] {m_type}: {e}")
 
 def predict(image_path: str, model_type: str = "efficientnet", user_prompt: str = "") -> dict:
     """
@@ -129,9 +130,10 @@ def predict(image_path: str, model_type: str = "efficientnet", user_prompt: str 
         
     device = get_device()
     transforms_fn = get_transforms()
+    norm_type = "mobilenet" if "mobilenet" in str(model_type).lower() else "efficientnet"
     
     # PyTorch (EfficientNet / MobileNet) Inference
-    model = load_specific_model(model_type)
+    model = load_specific_model(norm_type)
     if model is not None:
         import torch
         import torch.nn.functional as F
@@ -172,7 +174,7 @@ def predict(image_path: str, model_type: str = "efficientnet", user_prompt: str 
                     "confidence": round(conf, 4),
                     "crop": clean_name.split()[0],
                     "raw_class": raw_class,
-                    "model_used": model_type.capitalize(),
+                    "model_used": norm_type.capitalize(),
                     "status": "success"
                 }
         except Exception as e:
@@ -183,7 +185,7 @@ def predict(image_path: str, model_type: str = "efficientnet", user_prompt: str 
         "disease": "Tomato Early Blight",
         "confidence": 0.95,
         "crop": "Tomato",
-        "model_used": model_type,
+        "model_used": norm_type,
         "status": "fallback"
     }
 

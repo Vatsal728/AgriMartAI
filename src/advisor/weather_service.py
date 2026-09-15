@@ -241,7 +241,7 @@ def fetch_live_agri_weather(lat: float, lon: float, location_name: str = "Field 
     )
     
     try:
-        resp = requests.get(url, timeout=4)
+        resp = requests.get(url, timeout=1.5)
         if resp.status_code == 200:
             raw = resp.json()
             curr = raw.get("current", {})
