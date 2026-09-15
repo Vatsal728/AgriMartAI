@@ -120,3 +120,8 @@ curl http://localhost:8080/health
 - **Developed for:** Smart India Hackathon (SIH 2026)
 - **Institution:** L. J. Institute of Engineering and Technology
 - **Repository:** [Vatsal728/AgriMartAI](https://github.com/Vatsal728/AgriMartAI)
+
+### 🌟 Core Contributors
+| Contributor | Role & Domain | GitHub Profile |
+| :--- | :--- | :---: |
+| **Vatsal Desai** | Lead AI Architect & Backend Systems | [@Vatsal728](https://github.com/Vatsal728) |
