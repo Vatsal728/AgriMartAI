@@ -179,3 +179,4 @@ pytest tests/test_api_and_db.py -v
 | Contributor | Role & Domain | GitHub Profile |
 | :--- | :--- | :---: |
 | **Vatsal Desai** | Lead AI Architect & Full-Stack Systems | [@Vatsal728](https://github.com/Vatsal728) |
+| **Krinal Raiyani** | UI/UX Designer | [@krinalraiyani](https://github.com/krinalraiyani) |
