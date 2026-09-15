@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import { Bell, TrendingUp, FileDown, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 const data = [
   { date: "Oct 20", moisture: 40 },
@@ -28,22 +29,23 @@ const data = [
 const ranges = ["7d", "30d", "90d"] as const;
 
 export default function SoilMoistureTrendPage() {
+  const { t } = useLanguage();
   const [range, setRange] = useState<(typeof ranges)[number]>("7d");
 
   return (
     <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-4 py-8 sm:px-8 sm:py-10">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-text-muted">Irrigation & Soil Analysis</p>
-          <h1 className="font-heading text-2xl font-bold text-slate-900 sm:text-3xl">Soil moisture trend</h1>
+          <p className="text-sm font-semibold text-text-muted">{t("moistureTrend.breadcrumb")}</p>
+          <h1 className="font-heading text-2xl font-bold text-slate-900 sm:text-3xl">{t("moistureTrend.title")}</h1>
         </div>
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 sm:flex">
             <span className="size-2 rounded-full bg-green-500" />
-            <span className="text-sm font-semibold text-slate-600">System Live</span>
+            <span className="text-sm font-semibold text-slate-600">{t("dashboard.systemLive")}</span>
           </div>
           <Link href="/notifications"
-            aria-label="Notifications"
+            aria-label={t("common.notifications")}
             className="flex size-12 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm"
           >
             <Bell className="size-4 text-slate-700" />
@@ -70,33 +72,33 @@ export default function SoilMoistureTrendPage() {
           </div>
           <div className="flex gap-6 text-xs font-semibold text-slate-600">
             <span className="flex items-center gap-2">
-              <span className="size-3 rounded-full bg-brand" /> Soil Moisture %
+              <span className="size-3 rounded-full bg-brand" /> {t("moistureTrend.soilMoisturePercent")}
             </span>
             <span className="flex items-center gap-2">
-              <span className="size-3 rounded-full bg-emerald-200" /> Optimal Range
+              <span className="size-3 rounded-full bg-emerald-200" /> {t("moistureTrend.optimalRange")}
             </span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div className="rounded-2xl border border-slate-200 p-5">
-            <p className="text-sm text-text-muted">Current Avg.</p>
+            <p className="text-sm text-text-muted">{t("moistureTrend.currentAvg")}</p>
             <p className="font-heading text-3xl font-bold text-slate-900">42.8%</p>
           </div>
           <div className="rounded-2xl border border-slate-200 p-5">
-            <p className="text-sm text-text-muted">Peak Moisture</p>
+            <p className="text-sm text-text-muted">{t("moistureTrend.peakMoisture")}</p>
             <p className="font-heading text-3xl font-bold text-slate-900">48.2%</p>
           </div>
           <div className="rounded-2xl border border-slate-200 p-5">
-            <p className="text-sm text-text-muted">Min. Threshold</p>
+            <p className="text-sm text-text-muted">{t("moistureTrend.minThreshold")}</p>
             <p className="font-heading text-3xl font-bold text-slate-900">38.0%</p>
           </div>
           <div className="rounded-2xl border border-slate-200 p-5">
             <p className="flex items-center gap-1.5 text-sm text-text-muted">
               <CheckCircle2 className="size-3.5 text-brand" />
-              Status
+              {t("irrigation.status")}
             </p>
-            <p className="font-heading text-3xl font-bold text-brand">Healthy</p>
+            <p className="font-heading text-3xl font-bold text-brand">{t("dashboard.status.healthy")}</p>
           </div>
         </div>
 
@@ -119,15 +121,13 @@ export default function SoilMoistureTrendPage() {
               <TrendingUp className="size-5 text-brand" />
             </div>
             <div>
-              <p className="font-bold text-slate-900">Trend Insight</p>
-              <p className="text-sm text-text-muted">
-                Moisture levels have remained within the optimal 40-50% range for the last 48 hours.
-              </p>
+              <p className="font-bold text-slate-900">{t("moistureTrend.trendInsight")}</p>
+              <p className="text-sm text-text-muted">{t("moistureTrend.trendInsightBody")}</p>
             </div>
           </div>
           <button type="button" className="flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 px-6 py-3 text-sm font-bold text-slate-800">
             <FileDown className="size-3.5" />
-            Generate Report
+            {t("moistureTrend.generateReport")}
           </button>
         </div>
       </div>

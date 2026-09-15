@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Leaf, WifiOff, RefreshCcw, History, ScanLine, X } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function OfflinePage() {
+  const { t } = useLanguage();
   const [showToast, setShowToast] = useState(true);
 
   return (
@@ -14,12 +16,12 @@ export default function OfflinePage() {
           <div className="flex size-10 items-center justify-center rounded-xl bg-brand">
             <Leaf className="size-5 text-white" strokeWidth={2.5} />
           </div>
-          <span className="font-heading text-lg font-bold text-brand">AgriSmart AI</span>
+          <span className="font-heading text-lg font-bold text-brand">{t("common.appName")}</span>
         </div>
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600">
             <WifiOff className="size-3.5" />
-            Local Mode
+            {t("offline.localMode")}
           </span>
           <div className="size-10 rounded-full bg-surface-muted" />
         </div>
@@ -35,11 +37,8 @@ export default function OfflinePage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h1 className="font-heading text-3xl font-bold text-slate-900">You&rsquo;re offline</h1>
-          <p className="max-w-md text-base text-text-muted">
-            Some features are unavailable until you&rsquo;re back online. Cached scans and history
-            are still accessible so you can keep working in the field.
-          </p>
+          <h1 className="font-heading text-3xl font-bold text-slate-900">{t("offline.title")}</h1>
+          <p className="max-w-md text-base text-text-muted">{t("offline.description")}</p>
         </div>
 
         <button
@@ -48,30 +47,28 @@ export default function OfflinePage() {
           className="flex items-center gap-2 rounded-2xl bg-brand px-8 py-4 text-base font-bold text-white shadow-lg"
         >
           <RefreshCcw className="size-4" />
-          Retry connection
+          {t("offline.retryConnection")}
         </button>
 
         <div className="flex gap-8">
           <Link href="/history" className="flex items-center gap-2 text-sm font-bold text-slate-700">
             <History className="size-4" />
-            View cached history
+            {t("offline.viewCachedHistory")}
           </Link>
           <Link href="/scan-leaf" className="flex items-center gap-2 text-sm font-bold text-slate-700">
             <ScanLine className="size-4" />
-            Recent scans
+            {t("offline.recentScans")}
           </Link>
         </div>
 
-        <p className="border-t border-slate-100 pt-8 text-sm text-text-muted">
-          Need help? Check your router settings or view our troubleshooting guide
-        </p>
+        <p className="border-t border-slate-100 pt-8 text-sm text-text-muted">{t("offline.helpText")}</p>
       </div>
 
       {showToast && (
         <div className="fixed bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-4 rounded-2xl bg-slate-900 px-6 py-4 text-white shadow-xl">
           <span className="size-2 rounded-full bg-amber-400" />
-          <p className="text-sm">Syncing paused. 14 items waiting for connection.</p>
-          <button type="button" aria-label="Dismiss" onClick={() => setShowToast(false)} className="text-slate-400">
+          <p className="text-sm">{t("offline.syncPaused")}</p>
+          <button type="button" aria-label={t("notifications.dismiss")} onClick={() => setShowToast(false)} className="text-slate-400">
             <X className="size-4" />
           </button>
         </div>

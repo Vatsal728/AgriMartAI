@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Leaf,
@@ -10,47 +12,51 @@ import {
   MessageCircle,
   ArrowRight,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import type { TranslationKey } from "@/lib/i18n/LanguageContext";
 
-const stats = [
-  { value: "94.2%", label: "Diagnosis accuracy" },
-  { value: "45+", label: "Plant species covered" },
-  { value: "12+", label: "Languages supported" },
+const stats: { value: string; label: TranslationKey }[] = [
+  { value: "94.2%", label: "landing.stat.accuracy" },
+  { value: "45+", label: "landing.stat.species" },
+  { value: "2", label: "landing.stat.languages" },
 ];
 
-const features = [
+const features: { icon: typeof ScanLine; title: TranslationKey; description: TranslationKey }[] = [
   {
     icon: ScanLine,
-    title: "Instant Disease Detection",
-    description: "Upload a leaf photo and get a diagnosis with confidence score and treatment advice in seconds.",
+    title: "landing.feature.detection.title",
+    description: "landing.feature.detection.description",
   },
   {
     icon: MessageCircle,
-    title: "Grounded AI Assistant",
-    description: "Ask follow-up questions in plain language, with every answer cited from an agricultural knowledge base.",
+    title: "landing.feature.assistant.title",
+    description: "landing.feature.assistant.description",
   },
   {
     icon: Sprout,
-    title: "Crop Recommendation",
-    description: "Get AI-powered crop suggestions based on soil type, pH, weather, and season.",
+    title: "landing.feature.cropRecommendation.title",
+    description: "landing.feature.cropRecommendation.description",
   },
   {
     icon: Droplet,
-    title: "Smart Irrigation",
-    description: "Real-time soil moisture, automated valve control, and irrigation schedules per sector.",
+    title: "landing.feature.irrigation.title",
+    description: "landing.feature.irrigation.description",
   },
   {
     icon: CloudSun,
-    title: "Weather Intelligence",
-    description: "7-day hyper-local forecasts combined with farm data to flag disease and irrigation risk.",
+    title: "landing.feature.weather.title",
+    description: "landing.feature.weather.description",
   },
   {
     icon: BarChart3,
-    title: "Sustainability Score",
-    description: "Track water efficiency, resource use, and crop health with a transparent scoring methodology.",
+    title: "landing.feature.sustainability.title",
+    description: "landing.feature.sustainability.description",
   },
 ];
 
 export default function LandingPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-white">
       {/* Nav */}
@@ -59,17 +65,17 @@ export default function LandingPage() {
           <div className="flex size-9 items-center justify-center rounded-lg bg-brand">
             <Leaf className="size-4 text-white" strokeWidth={2.5} />
           </div>
-          <span className="font-heading text-lg font-bold text-brand">AgriSmart AI</span>
+          <span className="font-heading text-lg font-bold text-brand">{t("common.appName")}</span>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/login" className="hidden text-sm font-semibold text-slate-700 sm:block">
-            Log in
+            {t("login.tab.login")}
           </Link>
           <Link
             href="/login"
             className="rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-sm"
           >
-            Get Started
+            {t("landing.getStarted")}
           </Link>
         </div>
       </header>
@@ -80,28 +86,25 @@ export default function LandingPage() {
         <div className="pointer-events-none absolute -bottom-32 -left-24 size-96 rounded-full bg-accent/10 blur-3xl" />
         <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-8 text-center">
           <span className="rounded-full bg-brand/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-brand">
-            Intelligent Agriculture Platform
+            {t("landing.badge")}
           </span>
           <h1 className="font-heading text-4xl font-bold leading-tight text-slate-900 sm:text-6xl">
-            Farming, guided by <span className="text-brand">grounded AI</span>
+            {t("landing.heroTitlePrefix")} <span className="text-brand">{t("landing.heroTitleHighlight")}</span>
           </h1>
-          <p className="max-w-xl text-lg text-text-muted">
-            Detect crop disease instantly, get science-backed treatment advice, and manage
-            irrigation, weather, and sustainability — all from one dashboard.
-          </p>
+          <p className="max-w-xl text-lg text-text-muted">{t("landing.heroDescription")}</p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <Link
               href="/login"
               className="flex items-center justify-center gap-2 rounded-full bg-brand px-8 py-4 text-base font-bold text-white shadow-lg"
             >
-              Get Started
+              {t("landing.getStarted")}
               <ArrowRight className="size-4" />
             </Link>
             <Link
               href="/login"
               className="flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-8 py-4 text-base font-bold text-slate-800"
             >
-              Log in
+              {t("login.tab.login")}
             </Link>
           </div>
 
@@ -109,7 +112,7 @@ export default function LandingPage() {
             {stats.map((s) => (
               <div key={s.label} className="flex flex-col items-center">
                 <p className="font-heading text-3xl font-bold text-brand sm:text-4xl">{s.value}</p>
-                <p className="text-sm text-text-muted">{s.label}</p>
+                <p className="text-sm text-text-muted">{t(s.label)}</p>
               </div>
             ))}
           </div>
@@ -120,13 +123,8 @@ export default function LandingPage() {
       <section className="px-6 py-20 sm:px-12 sm:py-28">
         <div className="mx-auto flex max-w-6xl flex-col gap-16">
           <div className="mx-auto flex max-w-xl flex-col items-center gap-4 text-center">
-            <h2 className="font-heading text-3xl font-bold text-slate-900 sm:text-4xl">
-              Everything a modern farm needs
-            </h2>
-            <p className="text-text-muted">
-              Core disease detection, plus a full advisory suite — crop, irrigation, weather, and
-              sustainability — powered by an agentic layer that watches your farm continuously.
-            </p>
+            <h2 className="font-heading text-3xl font-bold text-slate-900 sm:text-4xl">{t("landing.featuresHeading")}</h2>
+            <p className="text-text-muted">{t("landing.featuresSubheading")}</p>
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -140,8 +138,8 @@ export default function LandingPage() {
                   <div className="flex size-12 items-center justify-center rounded-2xl bg-brand/10">
                     <Icon className="size-5 text-brand" />
                   </div>
-                  <h3 className="font-heading text-lg font-bold text-slate-900">{f.title}</h3>
-                  <p className="text-sm text-text-muted">{f.description}</p>
+                  <h3 className="font-heading text-lg font-bold text-slate-900">{t(f.title)}</h3>
+                  <p className="text-sm text-text-muted">{t(f.description)}</p>
                 </div>
               );
             })}
@@ -155,18 +153,13 @@ export default function LandingPage() {
           <div className="flex size-14 items-center justify-center rounded-2xl bg-white/15">
             <Bot className="size-6" />
           </div>
-          <h2 className="font-heading text-3xl font-bold sm:text-4xl">
-            An advisor that never sleeps
-          </h2>
-          <p className="max-w-xl text-emerald-50/80">
-            Our agentic layer continuously reasons over weather, soil, and disease-risk data — and
-            proactively notifies you before problems become losses.
-          </p>
+          <h2 className="font-heading text-3xl font-bold sm:text-4xl">{t("landing.advisorHeading")}</h2>
+          <p className="max-w-xl text-emerald-50/80">{t("landing.advisorDescription")}</p>
           <Link
             href="/login"
             className="mt-2 flex items-center gap-2 rounded-full bg-white px-8 py-4 text-base font-bold text-brand shadow-lg"
           >
-            Start free today
+            {t("landing.startFreeToday")}
             <ArrowRight className="size-4" />
           </Link>
         </div>
@@ -176,9 +169,9 @@ export default function LandingPage() {
       <footer className="flex flex-col items-center gap-4 border-t border-slate-100 px-6 py-10 text-sm text-text-muted sm:flex-row sm:justify-between sm:px-12">
         <div className="flex items-center gap-2">
           <Leaf className="size-4 text-brand" />
-          <span className="font-semibold text-slate-700">AgriSmart AI</span>
+          <span className="font-semibold text-slate-700">{t("common.appName")}</span>
         </div>
-        <p>© 2024 AgriSmart AI Solutions. All rights reserved.</p>
+        <p>{t("login.footer.rights")}</p>
       </footer>
     </div>
   );

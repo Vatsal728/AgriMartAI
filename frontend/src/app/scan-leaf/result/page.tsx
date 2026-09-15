@@ -1,6 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { Bell, Crosshair, Lightbulb, Maximize2, Sparkles } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import type { FullDiagnosisResponse } from "@/types/api";
 
 const recentThumbs = [
   "/images/result-thumb-1.png",
@@ -8,18 +13,35 @@ const recentThumbs = [
   "/images/result-thumb-3.png",
 ];
 
+const SCANNED_DIAGNOSIS_STORAGE_KEY = "scan-leaf-diagnosis";
+
 export default function ScanLeafResultPage() {
+  const { t } = useLanguage();
+  const [diagnosis] = useState<FullDiagnosisResponse | null>(() => {
+    if (typeof window === "undefined") return null;
+    const raw = sessionStorage.getItem(SCANNED_DIAGNOSIS_STORAGE_KEY);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as FullDiagnosisResponse;
+    } catch {
+      return null;
+    }
+  });
+
+  const record = diagnosis?.diagnosis_record;
+  const confidencePct = diagnosis ? Math.round(diagnosis.prediction.confidence * 100) : null;
+
   return (
     <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-4 py-8 sm:px-8 sm:py-10">
       <div className="flex items-center justify-between">
-        <h1 className="font-heading text-2xl font-bold text-slate-900 sm:text-3xl">Scan result</h1>
+        <h1 className="font-heading text-2xl font-bold text-slate-900 sm:text-3xl">{t("scanLeaf.analyzing.title")}</h1>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2">
             <span className="size-2 rounded-full bg-green-500" />
-            <span className="text-sm font-semibold text-slate-600">AI Model Online</span>
+            <span className="text-sm font-semibold text-slate-600">{t("common.aiModelOnline")}</span>
           </div>
           <Link href="/notifications"
-            aria-label="Notifications"
+            aria-label={t("common.notifications")}
             className="flex size-10 items-center justify-center rounded-full border border-slate-200 bg-white"
           >
             <Bell className="size-4 text-slate-700" />
@@ -33,7 +55,7 @@ export default function ScanLeafResultPage() {
           <div className="relative aspect-square w-full overflow-hidden rounded-xl">
             <Image
               src="/images/result-leaf-large.png"
-              alt="Scanned tomato leaf"
+              alt={t("scanLeaf.result.imageAlt")}
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
               className="object-cover"
@@ -41,7 +63,7 @@ export default function ScanLeafResultPage() {
             <div className="absolute left-[38%] top-1/4 h-1/4 w-1/5 rounded-lg border-4 border-accent shadow-[0_0_0_9999px_rgba(0,0,0,0.3)]">
               <span className="absolute -left-3 -top-3 flex items-center gap-1.5 rounded bg-accent px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-lg">
                 <Crosshair className="size-2.5" />
-                Detected Area
+                {t("scanLeaf.result.detectedArea")}
               </span>
             </div>
           </div>
@@ -51,10 +73,10 @@ export default function ScanLeafResultPage() {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
             <h2 className="font-heading text-3xl font-extrabold text-slate-900 sm:text-4xl">
-              Tomato Early Blight
+              {record?.disease_name ?? t("scanLeaf.result.diseaseName")}
             </h2>
             <span className="inline-flex w-fit items-center rounded-lg bg-amber-800 px-4 py-2 text-sm font-bold text-white shadow-sm">
-              94% Confidence · Disease Detected
+              {confidencePct !== null ? `${confidencePct}% ${t("diagnosis.confidence")}` : t("scanLeaf.result.confidence")}
             </span>
           </div>
 
@@ -63,11 +85,10 @@ export default function ScanLeafResultPage() {
               <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-yellow-100">
                 <Lightbulb className="size-3.5 text-yellow-700" />
               </div>
-              <h3 className="font-heading text-lg font-bold text-slate-800">Immediate Precautions</h3>
+              <h3 className="font-heading text-lg font-bold text-slate-800">{t("scanLeaf.result.precautions")}</h3>
             </div>
-            <p className="text-[15px] leading-relaxed text-slate-600">
-              Isolate affected plants immediately to prevent spread. Prune infected leaves and
-              ensure proper air circulation. Avoid overhead watering.
+            <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-slate-600">
+              {record?.precautions_immediate ?? t("scanLeaf.result.precautionsBody")}
             </p>
           </div>
 
@@ -75,16 +96,16 @@ export default function ScanLeafResultPage() {
             <div className="flex flex-col gap-1 rounded-2xl border border-slate-200 bg-white p-4">
               <div className="flex items-center gap-2 text-slate-500">
                 <Maximize2 className="size-3" />
-                <span className="text-xs font-bold">SPREAD RISK</span>
+                <span className="text-xs font-bold">{t("scanLeaf.result.spreadRisk")}</span>
               </div>
-              <p className="font-bold text-slate-800">High (Airborne)</p>
+              <p className="font-bold text-slate-800">{record?.severity ?? t("scanLeaf.result.spreadRiskValue")}</p>
             </div>
             <div className="flex flex-col gap-1 rounded-2xl border border-slate-200 bg-white p-4">
               <div className="flex items-center gap-2 text-slate-500">
                 <Sparkles className="size-3" />
-                <span className="text-xs font-bold">TREATABILITY</span>
+                <span className="text-xs font-bold">{t("scanLeaf.result.treatability")}</span>
               </div>
-              <p className="font-bold text-slate-800">Manageable</p>
+              <p className="font-bold text-slate-800">{t("scanLeaf.result.treatabilityValue")}</p>
             </div>
           </div>
 
@@ -93,19 +114,19 @@ export default function ScanLeafResultPage() {
               href="/scan-leaf/treatment-advice"
               className="rounded-xl bg-brand py-4 text-center text-base font-bold text-white shadow-lg"
             >
-              View full advice
+              {t("scanLeaf.result.viewFullAdvice")}
             </Link>
             <Link
               href="/chat-assistant"
               className="rounded-xl border-2 border-accent py-4 text-center text-base font-bold text-accent"
             >
-              Ask assistant
+              {t("scanLeaf.result.askAssistant")}
             </Link>
           </div>
 
           <div className="flex flex-col gap-4 pt-4">
             <p className="text-center text-xs font-bold uppercase tracking-[1.4px] text-slate-400">
-              Recent Diagnoses
+              {t("scanLeaf.recentDiagnoses")}
             </p>
             <div className="flex items-center justify-center gap-4">
               {recentThumbs.map((src, i) => (
@@ -114,7 +135,7 @@ export default function ScanLeafResultPage() {
                   className="relative size-16 overflow-hidden rounded-xl border-2 border-white shadow-sm"
                   style={i === recentThumbs.length - 1 ? { opacity: 0.4 } : undefined}
                 >
-                  <Image src={src} alt="Recent diagnosis" fill sizes="64px" className="object-cover" />
+                  <Image src={src} alt={t("scanLeaf.recentDiagnosis")} fill sizes="64px" className="object-cover" />
                 </div>
               ))}
             </div>

@@ -13,44 +13,45 @@ import {
   HelpCircle,
   type LucideIcon,
 } from "lucide-react";
+import type { TranslationKey } from "@/lib/i18n/LanguageContext";
 
 export type NavItem = {
-  label: string;
+  label: TranslationKey;
   href: string;
   icon: LucideIcon;
 };
 
 export type NavSection = {
-  title: string;
+  title: TranslationKey;
   items: NavItem[];
 };
 
 export const navSections: NavSection[] = [
   {
-    title: "Primary",
+    title: "nav.section.primary",
     items: [
-      { label: "Home", href: "/dashboard", icon: Home },
-      { label: "Scan Leaf", href: "/scan-leaf", icon: ScanLine },
-      { label: "Chat Assistant", href: "/chat-assistant", icon: MessageCircle },
-      { label: "History", href: "/history", icon: History },
+      { label: "nav.item.home", href: "/dashboard", icon: Home },
+      { label: "nav.item.scanLeaf", href: "/scan-leaf", icon: ScanLine },
+      { label: "nav.item.chatAssistant", href: "/chat-assistant", icon: MessageCircle },
+      { label: "nav.item.history", href: "/history", icon: History },
     ],
   },
   {
-    title: "Advisory Tools",
+    title: "nav.section.advisoryTools",
     items: [
-      { label: "Crop Recommendation", href: "/crop-recommendation", icon: Sprout },
-      { label: "Irrigation", href: "/irrigation", icon: Droplet },
-      { label: "Weather", href: "/weather", icon: CloudSun },
-      { label: "Sustainability Score", href: "/sustainability-score", icon: BarChart3 },
-      { label: "Agentic Advisor", href: "/agentic-advisor", icon: Bot },
+      { label: "nav.item.cropRecommendation", href: "/crop-recommendation", icon: Sprout },
+      { label: "nav.item.irrigation", href: "/irrigation", icon: Droplet },
+      { label: "nav.item.weather", href: "/weather", icon: CloudSun },
+      { label: "nav.item.sustainabilityScore", href: "/sustainability-score", icon: BarChart3 },
+      { label: "nav.item.agenticAdvisor", href: "/agentic-advisor", icon: Bot },
     ],
   },
   {
-    title: "Account",
+    title: "nav.section.account",
     items: [
-      { label: "Profile", href: "/profile", icon: User },
-      { label: "Settings", href: "/settings", icon: Settings },
-      { label: "Help Center", href: "/help-center", icon: HelpCircle },
+      { label: "nav.item.profile", href: "/profile", icon: User },
+      { label: "nav.item.settings", href: "/settings", icon: Settings },
+      { label: "nav.item.helpCenter", href: "/help-center", icon: HelpCircle },
     ],
   },
 ];

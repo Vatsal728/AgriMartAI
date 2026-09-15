@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -12,6 +12,9 @@ import {
 } from "recharts";
 import { Droplets, Sun, Sprout, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import type { TranslationKey } from "@/lib/i18n/LanguageContext";
+import { AgriSmartAPI } from "@/lib/api";
 
 const moistureHistory = [
   { time: "00:00", moisture: 48 },
@@ -22,23 +25,39 @@ const moistureHistory = [
   { time: "20:00", moisture: 32 },
 ];
 
-const zones = [
-  { label: "Zone A: 42%", tone: "bg-brand/20 border-white/40 text-brand" },
-  { label: "Zone B: 32%", tone: "bg-amber-500/20 border-white/40 text-amber-700" },
-  { label: "Zone C: 48%", tone: "bg-brand/30 border-white/40 text-brand" },
-  { label: "Zone D: 28%", tone: "bg-amber-600/30 border-white/40 text-amber-800" },
+const zones: { labelKey: TranslationKey; value: string; tone: string }[] = [
+  { labelKey: "irrigation.zoneA", value: "42%", tone: "bg-brand/20 border-white/40 text-brand" },
+  { labelKey: "irrigation.zoneB", value: "32%", tone: "bg-amber-500/20 border-white/40 text-amber-700" },
+  { labelKey: "irrigation.zoneC", value: "48%", tone: "bg-brand/30 border-white/40 text-brand" },
+  { labelKey: "irrigation.zoneD", value: "28%", tone: "bg-amber-600/30 border-white/40 text-amber-800" },
 ];
 
 type SectorStatus = "standby" | "active";
-type Sector = { name: string; status: SectorStatus };
+type Sector = { sectorNumber: number; status: SectorStatus };
 
 export default function IrrigationPage() {
+  const { t } = useLanguage();
+  const [soilMoisturePct, setSoilMoisturePct] = useState(32);
   const [sectors, setSectors] = useState<Sector[]>([
-    { name: "Sector 01", status: "standby" },
-    { name: "Sector 02", status: "active" },
-    { name: "Sector 03", status: "standby" },
-    { name: "Sector 04", status: "standby" },
+    { sectorNumber: 1, status: "standby" },
+    { sectorNumber: 2, status: "active" },
+    { sectorNumber: 3, status: "standby" },
+    { sectorNumber: 4, status: "standby" },
   ]);
+
+  useEffect(() => {
+    let cancelled = false;
+    AgriSmartAPI.getSoilTelemetry()
+      .then((res) => {
+        if (!cancelled) setSoilMoisturePct(Math.round(res.soil_moisture_pct));
+      })
+      .catch(() => {
+        // Backend unreachable — keep the fallback demo value.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const toggleSector = (i: number) =>
     setSectors((prev) =>
@@ -48,7 +67,7 @@ export default function IrrigationPage() {
   return (
     <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-4 py-8 sm:px-8 sm:py-10">
       <div className="flex items-center justify-between">
-        <h1 className="font-heading text-2xl font-bold text-slate-900 sm:text-3xl">Irrigation Status</h1>
+        <h1 className="font-heading text-2xl font-bold text-slate-900 sm:text-3xl">{t("irrigation.title")}</h1>
       </div>
 
       {/* Hero */}
@@ -60,16 +79,16 @@ export default function IrrigationPage() {
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-3">
               <h2 className="font-heading text-3xl font-bold text-slate-900 sm:text-4xl">
-                Irrigation needed
+                {t("irrigation.needed")}
               </h2>
               <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-700">
-                Action Required
+                {t("irrigation.actionRequired")}
               </span>
             </div>
             <div className="flex items-center gap-2 text-lg text-text-muted">
               <Sun className="size-4" />
-              Next recommended irrigation:{" "}
-              <span className="font-bold text-slate-900">Today, 4:30 PM</span>
+              {t("irrigation.nextRecommended")}{" "}
+              <span className="font-bold text-slate-900">{t("irrigation.todayTime")}</span>
             </div>
           </div>
         </div>
@@ -80,8 +99,8 @@ export default function IrrigationPage() {
               <Droplets className="size-5 text-blue-500" />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-text-muted">Soil Moisture</p>
-              <p className="font-heading text-2xl font-bold text-slate-900">32%</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-text-muted">{t("dashboard.soilMoisture.title")}</p>
+              <p className="font-heading text-2xl font-bold text-slate-900">{soilMoisturePct}%</p>
             </div>
           </div>
           <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-surface-muted p-4">
@@ -89,8 +108,8 @@ export default function IrrigationPage() {
               <Sun className="size-5 text-amber-500" />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-text-muted">Weather</p>
-              <p className="font-heading text-2xl font-bold text-slate-900">Sunny, 28°C</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-text-muted">{t("nav.item.weather")}</p>
+              <p className="font-heading text-2xl font-bold text-slate-900">{t("irrigation.sunny28")}</p>
             </div>
           </div>
           <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-surface-muted p-4">
@@ -98,8 +117,8 @@ export default function IrrigationPage() {
               <Sprout className="size-5 text-brand" />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-text-muted">Growth Stage</p>
-              <p className="font-heading text-2xl font-bold text-slate-900">Vegetative</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-text-muted">{t("irrigation.growthStage")}</p>
+              <p className="font-heading text-2xl font-bold text-slate-900">{t("irrigation.vegetative")}</p>
             </div>
           </div>
         </div>
@@ -109,9 +128,9 @@ export default function IrrigationPage() {
         {/* Moisture history */}
         <div className="flex flex-col gap-6 rounded-[32px] border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex items-center justify-between">
-            <h3 className="font-heading text-xl font-bold text-slate-900">Moisture History</h3>
+            <h3 className="font-heading text-xl font-bold text-slate-900">{t("irrigation.moistureHistory")}</h3>
             <span className="rounded-lg bg-surface-muted px-4 py-2 text-sm font-semibold text-slate-600">
-              Last 24 Hours
+              {t("irrigation.last24Hours")}
             </span>
           </div>
           <div className="h-[260px] w-full">
@@ -130,25 +149,25 @@ export default function IrrigationPage() {
         {/* Field moisture map */}
         <div className="flex flex-col gap-6 rounded-[32px] border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex items-center justify-between">
-            <h3 className="font-heading text-xl font-bold text-slate-900">Field Moisture Map</h3>
+            <h3 className="font-heading text-xl font-bold text-slate-900">{t("irrigation.fieldMoistureMap")}</h3>
             <button type="button" className="flex items-center gap-1.5 text-sm font-bold text-brand">
-              Expand Map
+              {t("irrigation.expandMap")}
               <Maximize2 className="size-3.5" />
             </button>
           </div>
           <div className="grid h-[260px] grid-cols-2 grid-rows-2 overflow-hidden rounded-2xl bg-slate-200">
             {zones.map((z) => (
-              <div key={z.label} className={cn("flex items-center justify-center border", z.tone)}>
-                <span className="text-xs font-bold">{z.label}</span>
+              <div key={z.labelKey} className={cn("flex items-center justify-center border", z.tone)}>
+                <span className="text-xs font-bold">{t(z.labelKey)}: {z.value}</span>
               </div>
             ))}
           </div>
           <div className="flex flex-wrap gap-4 text-xs font-bold text-slate-600">
             <span className="flex items-center gap-2">
-              <span className="size-3 rounded-full bg-brand" /> Optimal
+              <span className="size-3 rounded-full bg-brand" /> {t("dashboard.soilMoisture.optimal")}
             </span>
             <span className="flex items-center gap-2">
-              <span className="size-3 rounded-full bg-amber-500" /> Needs Attention
+              <span className="size-3 rounded-full bg-amber-500" /> {t("irrigation.needsAttention")}
             </span>
           </div>
         </div>
@@ -158,15 +177,15 @@ export default function IrrigationPage() {
       <div className="flex flex-col gap-8 rounded-[32px] border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h3 className="font-heading text-xl font-bold text-slate-900">Irrigation Control</h3>
-            <p className="text-sm text-text-muted">Remote control for automated valve clusters</p>
+            <h3 className="font-heading text-xl font-bold text-slate-900">{t("irrigation.control")}</h3>
+            <p className="text-sm text-text-muted">{t("irrigation.controlSubtitle")}</p>
           </div>
           <div className="flex gap-4">
             <button type="button" className="rounded-xl bg-surface-muted px-6 py-3 text-sm font-bold text-slate-700">
-              Pause All
+              {t("irrigation.pauseAll")}
             </button>
             <button type="button" className="rounded-xl bg-brand px-6 py-3 text-sm font-bold text-white shadow-lg">
-              Run Full Cycle
+              {t("irrigation.runFullCycle")}
             </button>
           </div>
         </div>
@@ -174,20 +193,21 @@ export default function IrrigationPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {sectors.map((sector, i) => {
             const active = sector.status === "active";
+            const sectorLabel = `${t("dashboard.sector")} ${String(sector.sectorNumber).padStart(2, "0")}`;
             return (
               <div
-                key={sector.name}
+                key={sector.sectorNumber}
                 className={cn(
                   "flex flex-col gap-4 rounded-2xl p-6",
                   active ? "border-2 border-brand/20 bg-brand/5" : "border border-slate-100"
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <p className="font-heading text-lg font-bold text-slate-900">{sector.name}</p>
+                  <p className="font-heading text-lg font-bold text-slate-900">{sectorLabel}</p>
                   <button
                     type="button"
                     onClick={() => toggleSector(i)}
-                    aria-label={`Toggle ${sector.name}`}
+                    aria-label={`${t("irrigation.toggle")} ${sectorLabel}`}
                     className={cn(
                       "relative h-6 w-10 rounded-full transition-colors",
                       active ? "bg-brand" : "bg-slate-200"
@@ -203,15 +223,15 @@ export default function IrrigationPage() {
                 </div>
                 <div>
                   <p className={cn("text-xs font-bold uppercase tracking-wide", active ? "text-brand/60" : "text-slate-400")}>
-                    Status
+                    {t("irrigation.status")}
                   </p>
                   {active ? (
                     <div className="flex items-center gap-2">
                       <span className="size-2 rounded-full bg-brand" />
-                      <p className="text-sm font-bold text-brand">Active (Scheduled)</p>
+                      <p className="text-sm font-bold text-brand">{t("irrigation.activeScheduled")}</p>
                     </div>
                   ) : (
-                    <p className="text-sm font-bold text-slate-400">Standby</p>
+                    <p className="text-sm font-bold text-slate-400">{t("irrigation.standby")}</p>
                   )}
                 </div>
               </div>

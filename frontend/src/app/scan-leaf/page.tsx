@@ -6,8 +6,13 @@ import { useRef, useState, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, UploadCloud, Shield, Zap, Video, Sun, Crosshair, ScanEye } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import type { TranslationKey } from "@/lib/i18n/LanguageContext";
+import { AgriSmartAPI } from "@/lib/api";
 
 const SCANNED_IMAGE_STORAGE_KEY = "scan-leaf-image";
+const SCANNED_DIAGNOSIS_STORAGE_KEY = "scan-leaf-diagnosis";
+const SCANNED_DIAGNOSIS_SETTLED_KEY = "scan-leaf-diagnosis-settled";
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/heic", "image/heif"];
 
 const recentThumbs = [
@@ -16,14 +21,15 @@ const recentThumbs = [
   "/images/result-thumb-3.png",
 ];
 
-const tips = [
-  { icon: Sun, title: "Good Lighting", body: "Ensure the leaf is well-lit for accurate disease identification." },
-  { icon: Crosshair, title: "Stay Focused", body: "Keep the leaf centered and in focus within the frame." },
-  { icon: ScanEye, title: "Multiple Angles", body: "Scan both sides of the leaf if symptoms are visible on both." },
+const tips: { icon: typeof Sun; title: TranslationKey; body: TranslationKey }[] = [
+  { icon: Sun, title: "scanLeaf.tip.lighting.title", body: "scanLeaf.tip.lighting.body" },
+  { icon: Crosshair, title: "scanLeaf.tip.focus.title", body: "scanLeaf.tip.focus.body" },
+  { icon: ScanEye, title: "scanLeaf.tip.angles.title", body: "scanLeaf.tip.angles.body" },
 ];
 
 export default function ScanLeafUploadPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [isDragActive, setIsDragActive] = useState(false);
@@ -34,12 +40,32 @@ export default function ScanLeafUploadPage() {
       return;
     }
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      setUploadError("Unsupported file type. Please upload a JPG, PNG, or HEIC image.");
+      setUploadError(t("scanLeaf.error.unsupportedType"));
       return;
     }
     setUploadError(undefined);
     const objectUrl = URL.createObjectURL(file);
     sessionStorage.setItem(SCANNED_IMAGE_STORAGE_KEY, objectUrl);
+    sessionStorage.removeItem(SCANNED_DIAGNOSIS_STORAGE_KEY);
+    sessionStorage.removeItem(SCANNED_DIAGNOSIS_SETTLED_KEY);
+
+    const formData = new FormData();
+    formData.append("file", file, file.name);
+    formData.append("model_type", "efficientnet");
+
+    // Fire the diagnosis request now; the analyzing page picks up the
+    // result from sessionStorage once it lands, independent of navigation.
+    AgriSmartAPI.diagnoseLeaf(formData)
+      .then((result) => {
+        sessionStorage.setItem(SCANNED_DIAGNOSIS_STORAGE_KEY, JSON.stringify(result));
+      })
+      .catch(() => {
+        // Backend unreachable — the analyzing/result pages fall back to demo content.
+      })
+      .finally(() => {
+        sessionStorage.setItem(SCANNED_DIAGNOSIS_SETTLED_KEY, "1");
+      });
+
     router.push("/scan-leaf/analyzing");
   }
 
@@ -67,14 +93,14 @@ export default function ScanLeafUploadPage() {
         onChange={(e) => handleSelectedFile(e.target.files?.[0])}
       />
       <div className="flex items-center justify-between">
-        <h1 className="font-heading text-2xl font-bold text-slate-900 sm:text-3xl">Scan leaf</h1>
+        <h1 className="font-heading text-2xl font-bold text-slate-900 sm:text-3xl">{t("scanLeaf.title")}</h1>
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 sm:flex">
             <span className="size-2 rounded-full bg-green-500" />
-            <span className="text-sm font-semibold text-slate-600">AI Model Online</span>
+            <span className="text-sm font-semibold text-slate-600">{t("common.aiModelOnline")}</span>
           </div>
           <Link href="/notifications"
-            aria-label="Notifications"
+            aria-label={t("common.notifications")}
             className="flex size-10 items-center justify-center rounded-full border border-slate-200 bg-white"
           >
             <Bell className="size-4 text-slate-700" />
@@ -101,24 +127,21 @@ export default function ScanLeafUploadPage() {
         </div>
         <div className="flex flex-col gap-2">
           <h2 className="font-heading text-2xl font-bold text-slate-900">
-            Drag and drop a leaf image, or click to browse
+            {t("scanLeaf.dropzone.title")}
           </h2>
-          <p className="text-sm text-text-muted">
-            Supported formats: JPG, PNG, HEIC. High resolution images recommended for better
-            diagnosis accuracy.
-          </p>
+          <p className="text-sm text-text-muted">{t("scanLeaf.dropzone.formats")}</p>
         </div>
         <span className="rounded-2xl bg-brand px-8 py-4 text-base font-bold text-white shadow-lg">
-          Choose Image
+          {t("scanLeaf.chooseImage")}
         </span>
         <div className="flex gap-3">
           <span className="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600">
             <Shield className="size-3" />
-            Secure Scan
+            {t("scanLeaf.secureScan")}
           </span>
           <span className="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600">
             <Zap className="size-3" />
-            Instant Analysis
+            {t("scanLeaf.instantAnalysis")}
           </span>
         </div>
       </button>
@@ -131,7 +154,7 @@ export default function ScanLeafUploadPage() {
 
       <div className="flex items-center gap-4">
         <div className="h-px flex-1 bg-slate-200" />
-        <span className="text-xs font-bold text-text-faint">OR</span>
+        <span className="text-xs font-bold text-text-faint">{t("common.or")}</span>
         <div className="h-px flex-1 bg-slate-200" />
       </div>
 
@@ -141,8 +164,8 @@ export default function ScanLeafUploadPage() {
             <Video className="size-6 text-brand" />
           </div>
           <div>
-            <h3 className="font-heading text-lg font-bold text-slate-900">Use camera</h3>
-            <p className="text-sm text-text-muted">Capture a live photo of the leaf directly from your device.</p>
+            <h3 className="font-heading text-lg font-bold text-slate-900">{t("scanLeaf.useCamera")}</h3>
+            <p className="text-sm text-text-muted">{t("scanLeaf.useCamera.description")}</p>
           </div>
         </div>
         <button
@@ -150,7 +173,7 @@ export default function ScanLeafUploadPage() {
           onClick={() => cameraInputRef.current?.click()}
           className="shrink-0 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-800 shadow-sm"
         >
-          Use camera
+          {t("scanLeaf.useCamera")}
         </button>
       </div>
 
@@ -162,19 +185,19 @@ export default function ScanLeafUploadPage() {
               <div className="flex size-8 items-center justify-center rounded-lg bg-white shadow-sm">
                 <Icon className="size-4 text-brand" />
               </div>
-              <p className="font-bold text-slate-900">{tip.title}</p>
-              <p className="text-sm text-text-muted">{tip.body}</p>
+              <p className="font-bold text-slate-900">{t(tip.title)}</p>
+              <p className="text-sm text-text-muted">{t(tip.body)}</p>
             </div>
           );
         })}
       </div>
 
       <div className="flex flex-col items-center gap-4">
-        <p className="text-xs font-bold uppercase tracking-[1.4px] text-slate-400">Recent Diagnoses</p>
+        <p className="text-xs font-bold uppercase tracking-[1.4px] text-slate-400">{t("scanLeaf.recentDiagnoses")}</p>
         <div className="flex gap-4">
           {recentThumbs.map((src) => (
             <div key={src} className="relative size-20 overflow-hidden rounded-xl border-2 border-white shadow-sm">
-              <Image src={src} alt="Recent diagnosis" fill sizes="80px" className="object-cover" />
+              <Image src={src} alt={t("scanLeaf.recentDiagnosis")} fill sizes="80px" className="object-cover" />
             </div>
           ))}
         </div>

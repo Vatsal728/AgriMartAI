@@ -6,9 +6,11 @@ import { usePathname } from "next/navigation";
 import { Leaf, ChevronRight } from "lucide-react";
 import { navSections } from "@/lib/nav";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <div className="flex h-full w-full flex-col justify-between bg-surface">
@@ -17,7 +19,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <Leaf className="size-5 text-white" strokeWidth={2.5} />
         </div>
         <span className="font-heading text-xl font-bold tracking-tight text-brand">
-          AgriSmart AI
+          {t("common.appName")}
         </span>
       </div>
 
@@ -25,7 +27,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         {navSections.map((section) => (
           <div key={section.title} className="flex flex-col gap-1.5">
             <p className="px-4 pb-1.5 text-[11px] font-bold uppercase tracking-[1.1px] text-text-faint">
-              {section.title}
+              {t(section.title)}
             </p>
             {section.items.map((item) => {
               const active = pathname === item.href;
@@ -43,7 +45,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   )}
                 >
                   <Icon className="size-[14px] shrink-0" strokeWidth={2.25} />
-                  <span>{item.label}</span>
+                  <span>{t(item.label)}</span>
                 </Link>
               );
             })}
@@ -70,7 +72,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             </div>
             <div>
               <p className="text-sm font-bold text-slate-800">David Miller</p>
-              <p className="text-[11px] text-text-muted">Premium Plan</p>
+              <p className="text-[11px] text-text-muted">{t("nav.premiumPlan")}</p>
             </div>
           </div>
           <ChevronRight className="size-3 text-text-muted" />

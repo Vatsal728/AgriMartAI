@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Sora, Manrope } from "next/font/google";
 import { AppShell } from "@/components/layout/AppShell";
+import { LanguageProvider } from "@/lib/i18n/LanguageContext";
+import { HtmlLangSync } from "@/lib/i18n/HtmlLangSync";
 import "./globals.css";
 
 const sora = Sora({
@@ -27,7 +29,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${sora.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <AppShell>{children}</AppShell>
+        <LanguageProvider>
+          <HtmlLangSync />
+          <AppShell>{children}</AppShell>
+        </LanguageProvider>
       </body>
     </html>
   );

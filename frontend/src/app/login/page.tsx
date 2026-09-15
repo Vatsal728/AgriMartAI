@@ -5,30 +5,32 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Leaf, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import type { TranslationKey } from "@/lib/i18n/LanguageContext";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_SPECIAL_CHAR_PATTERN = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/;
 const PASSWORD_MIN_LENGTH = 8;
 
-function getEmailError(email: string): string | undefined {
+function getEmailError(email: string, t: (key: TranslationKey) => string): string | undefined {
   if (!email.trim()) {
-    return "Email is required";
+    return t("login.error.emailRequired");
   }
   if (!EMAIL_PATTERN.test(email)) {
-    return "Enter a valid email address (e.g. farmer@gmail.com)";
+    return t("login.error.emailInvalid");
   }
   return undefined;
 }
 
-function getPasswordError(password: string): string | undefined {
+function getPasswordError(password: string, t: (key: TranslationKey) => string): string | undefined {
   if (!password) {
-    return "Password is required";
+    return t("login.error.passwordRequired");
   }
   if (password.length < PASSWORD_MIN_LENGTH) {
-    return `Password must be at least ${PASSWORD_MIN_LENGTH} characters`;
+    return t("login.error.passwordTooShort");
   }
   if (!PASSWORD_SPECIAL_CHAR_PATTERN.test(password)) {
-    return "Password must include at least one special character";
+    return t("login.error.passwordNeedsSpecialChar");
   }
   return undefined;
 }
@@ -40,6 +42,7 @@ interface FormErrors {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -57,7 +60,7 @@ export default function LoginPage() {
           <div className="flex size-10 items-center justify-center rounded-xl bg-brand">
             <Leaf className="size-5 text-white" strokeWidth={2.5} />
           </div>
-          <span className="font-heading text-xl font-bold text-brand">AgriSmart AI</span>
+          <span className="font-heading text-xl font-bold text-brand">{t("common.appName")}</span>
         </div>
 
         <div className="flex rounded-2xl bg-surface-muted p-1">
@@ -69,7 +72,7 @@ export default function LoginPage() {
               mode === "login" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400"
             )}
           >
-            Log in
+            {t("login.tab.login")}
           </button>
           <button
             type="button"
@@ -79,24 +82,24 @@ export default function LoginPage() {
               mode === "signup" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400"
             )}
           >
-            Sign up
+            {t("login.tab.signup")}
           </button>
         </div>
 
         <div className="flex flex-col gap-2 text-center">
           <h1 className="font-heading text-2xl font-bold text-slate-900">
-            {mode === "login" ? "Welcome Back" : "Create your account"}
+            {mode === "login" ? t("login.title.login") : t("login.title.signup")}
           </h1>
           <p className="text-sm text-text-muted">
-            {mode === "login" ? "Please enter your farm credentials" : "Set up your AgriSmart AI account"}
+            {mode === "login" ? t("login.subtitle.login") : t("login.subtitle.signup")}
           </p>
         </div>
 
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            const emailError = getEmailError(email);
-            const passwordError = getPasswordError(password);
+            const emailError = getEmailError(email, t);
+            const passwordError = getPasswordError(password, t);
             if (emailError || passwordError) {
               setErrors({ email: emailError, password: passwordError });
               return;
@@ -109,7 +112,7 @@ export default function LoginPage() {
         >
           <div className="flex flex-col gap-2">
             <label htmlFor="email" className="text-sm font-semibold text-slate-700">
-              Email
+              {t("login.label.email")}
             </label>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-4 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
@@ -123,7 +126,7 @@ export default function LoginPage() {
                     setErrors((prev) => ({ ...prev, email: undefined }));
                   }
                 }}
-                onBlur={() => setErrors((prev) => ({ ...prev, email: getEmailError(email) }))}
+                onBlur={() => setErrors((prev) => ({ ...prev, email: getEmailError(email, t) }))}
                 placeholder="e.g. farmer@gmail.com"
                 aria-invalid={Boolean(errors.email)}
                 aria-describedby={errors.email ? "email-error" : undefined}
@@ -145,11 +148,11 @@ export default function LoginPage() {
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label htmlFor="password" className="text-sm font-semibold text-slate-700">
-                Password
+                {t("login.label.password")}
               </label>
               {mode === "login" && (
                 <button type="button" className="text-sm font-semibold text-brand">
-                  Forgot password?
+                  {t("login.forgotPassword")}
                 </button>
               )}
             </div>
@@ -165,8 +168,8 @@ export default function LoginPage() {
                     setErrors((prev) => ({ ...prev, password: undefined }));
                   }
                 }}
-                onBlur={() => setErrors((prev) => ({ ...prev, password: getPasswordError(password) }))}
-                placeholder="Enter your password"
+                onBlur={() => setErrors((prev) => ({ ...prev, password: getPasswordError(password, t) }))}
+                placeholder={t("login.placeholder.password")}
                 aria-invalid={Boolean(errors.password)}
                 aria-describedby={errors.password ? "password-error" : undefined}
                 className={cn(
@@ -178,7 +181,7 @@ export default function LoginPage() {
               />
               <button
                 type="button"
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? t("login.hidePassword") : t("login.showPassword")}
                 onClick={() => setShowPassword((v) => !v)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
               >
@@ -191,9 +194,7 @@ export default function LoginPage() {
               </p>
             ) : (
               mode === "signup" && (
-                <p className="text-xs text-text-muted">
-                  Min. 8 characters with at least one special character
-                </p>
+                <p className="text-xs text-text-muted">{t("login.passwordHint")}</p>
               )
             )}
           </div>
@@ -202,12 +203,12 @@ export default function LoginPage() {
             type="submit"
             className="rounded-2xl bg-brand py-4 text-base font-bold text-white shadow-lg"
           >
-            Continue
+            {t("common.continue")}
           </button>
 
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-slate-200" />
-            <span className="text-xs font-medium text-text-muted">or</span>
+            <span className="text-xs font-medium text-text-muted">{t("login.or")}</span>
             <div className="h-px flex-1 bg-slate-200" />
           </div>
 
@@ -215,12 +216,12 @@ export default function LoginPage() {
             type="button"
             className="rounded-2xl border border-slate-200 py-4 text-base font-bold text-slate-700"
           >
-            Continue with OTP
+            {t("login.continueWithOtp")}
           </button>
         </form>
 
         <div className="flex flex-col gap-4">
-          <p className="text-center text-sm text-text-muted">Or log in with</p>
+          <p className="text-center text-sm text-text-muted">{t("login.logInWith")}</p>
           <div className="grid grid-cols-2 gap-4">
             <button type="button" className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 py-3 text-sm font-bold text-slate-700">
               Google
@@ -233,11 +234,11 @@ export default function LoginPage() {
       </div>
 
       <div className="absolute bottom-6 left-0 right-0 z-10 flex flex-col items-center gap-2 text-xs text-text-faint">
-        <p>© 2024 AgriSmart AI Solutions. All rights reserved.</p>
+        <p>{t("login.footer.rights")}</p>
         <div className="flex gap-6 font-medium">
-          <Link href="/">Privacy Policy</Link>
-          <Link href="/">Terms of Service</Link>
-          <Link href="/help-center">Contact Support</Link>
+          <Link href="/">{t("common.privacyPolicy")}</Link>
+          <Link href="/">{t("login.footer.terms")}</Link>
+          <Link href="/help-center">{t("login.footer.contactSupport")}</Link>
         </div>
       </div>
     </div>

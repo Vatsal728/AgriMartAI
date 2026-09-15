@@ -12,6 +12,17 @@ import {
   Legend,
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import type { TranslationKey } from "@/lib/i18n/LanguageContext";
+
+const MONTH_KEYS: Record<string, TranslationKey> = {
+  May: "month.may",
+  Jun: "month.jun",
+  Jul: "month.jul",
+  Aug: "month.aug",
+  Sep: "month.sep",
+  Oct: "month.oct",
+};
 
 const data12 = [
   { month: "May", actual: 450, projected: 445 },
@@ -25,6 +36,7 @@ const data12 = [
 const data6 = data12.slice(-3);
 
 export function YieldChart() {
+  const { t } = useLanguage();
   const [range, setRange] = useState<"6" | "12">("12");
   const data = range === "12" ? data12 : data6;
 
@@ -32,8 +44,8 @@ export function YieldChart() {
     <section className="flex flex-col gap-8 rounded-[32px] border border-border bg-surface p-6 shadow-sm sm:p-8">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h2 className="font-heading text-xl font-bold text-slate-900">Yield Analytics</h2>
-          <p className="text-sm text-text-muted">Projected vs actual harvest weight</p>
+          <h2 className="font-heading text-xl font-bold text-slate-900">{t("dashboard.yieldAnalytics")}</h2>
+          <p className="text-sm text-text-muted">{t("dashboard.yieldAnalytics.subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -44,7 +56,7 @@ export function YieldChart() {
               range === "6" ? "bg-brand/10 text-brand" : "bg-surface-muted text-slate-600"
             )}
           >
-            Last 6 Months
+            {t("dashboard.last6Months")}
           </button>
           <button
             type="button"
@@ -54,7 +66,7 @@ export function YieldChart() {
               range === "12" ? "bg-brand/10 text-brand" : "bg-surface-muted text-slate-600"
             )}
           >
-            Last 12 Months
+            {t("dashboard.last12Months")}
           </button>
         </div>
       </div>
@@ -63,7 +75,13 @@ export function YieldChart() {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-            <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#444" }} axisLine={false} tickLine={false} />
+            <XAxis
+              dataKey="month"
+              tickFormatter={(month: string) => (MONTH_KEYS[month] ? t(MONTH_KEYS[month]) : month)}
+              tick={{ fontSize: 12, fill: "#444" }}
+              axisLine={false}
+              tickLine={false}
+            />
             <YAxis tick={{ fontSize: 12, fill: "#444" }} axisLine={false} tickLine={false} />
             <Tooltip />
             <Legend
@@ -75,7 +93,7 @@ export function YieldChart() {
             <Line
               type="monotone"
               dataKey="actual"
-              name="Actual Yield"
+              name={t("dashboard.actualYield")}
               stroke="#0f6e56"
               strokeWidth={3}
               dot={{ r: 4, fill: "#0f6e56" }}
@@ -83,7 +101,7 @@ export function YieldChart() {
             <Line
               type="monotone"
               dataKey="projected"
-              name="Projected"
+              name={t("dashboard.projected")}
               stroke="#185fa5"
               strokeWidth={2}
               strokeDasharray="4 4"
