@@ -216,27 +216,47 @@ export default function ChatAssistantPage() {
           }
           const diag = res.prediction;
           const adv = res.advisory;
-          const summary = (adv as any).conversational_summary || (adv as any).precautions || "";
-          const sourceStr = String((adv as any).rag_knowledge?.source || "AgriSmart AI Vision & RAG Expert");
-          const botReply = `🩺 **Diagnosis Result: ${diag.disease}** (${Math.round(diag.confidence * 100)}% Confidence)\n\n${summary}\n\n**Action Steps:**\n${res.diagnosis_record?.recommended_treatment || "Follow standard management protocol."}`;
+          const summary = (adv as any).conversational_summary || "";
+          const sourceStr = String((adv as any).rag_knowledge?.source || "ICAR/TNAU Agronomy & Leaf Vision Core");
+          
+          let botReply = `🩺 **Diagnosis Result: ${diag.disease}** (${Math.round(diag.confidence * 100)}% Confidence)\n\n`;
+          if (summary) {
+            botReply += `${summary}\n\n`;
+          }
+          if (res.diagnosis_record) {
+            const dr = res.diagnosis_record;
+            if (dr.recommended_treatment) {
+              botReply += `🧪 **Targeted Treatment:**\n${dr.recommended_treatment}\n\n`;
+            }
+            if (dr.precautions_immediate) {
+              botReply += `🛡️ **Immediate Field Precautions:**\n${dr.precautions_immediate}\n\n`;
+            }
+            if (dr.long_term_prevention) {
+              botReply += `🌾 **Long-Term Prevention:**\n${dr.long_term_prevention}\n\n`;
+            }
+          } else {
+            botReply += `**Action Steps:**\nFollow ICAR recommended chemical & biological dosage schedules.`;
+          }
+
           setMessages((prev) => [
             ...prev,
             {
               id: nextId++,
               from: "bot",
-              rawText: botReply,
+              rawText: botReply.trim(),
               rawSource: sourceStr,
             },
           ]);
         })
         .catch((err) => {
+          const errMsg = err?.message || "Vision inference timeout";
           setMessages((prev) => [
             ...prev,
             {
               id: nextId++,
               from: "bot",
-              rawText: `Diagnosed image with multimodal engine. Please check the Scan Leaf tab for full 3-part treatment options.`,
-              rawSource: "AgriSmart Vision System",
+              rawText: `⚠️ **Diagnosis Notice:** Could not process image (${errMsg}). Please check backend status or retry uploading the leaf image.`,
+              rawSource: "AgriSmart AI Vision System",
             },
           ]);
         })
