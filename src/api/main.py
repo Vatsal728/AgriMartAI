@@ -15,6 +15,7 @@ import os
 import sys
 import shutil
 import tempfile
+import uuid
 from typing import Optional, List, Dict, Any
 from contextlib import asynccontextmanager
 
@@ -365,7 +366,7 @@ def predict_crop_disease(
     user_prompt: Optional[str] = Form(None)
 ):
     """Fast vision inference: accepts crop leaf image and returns predicted disease"""
-    if not file.content_type.startswith("image/"):
+    if file.content_type and not (file.content_type.startswith("image/") or file.content_type == "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Uploaded file is not an image.")
     
     suffix = os.path.splitext(file.filename)[1] or ".jpg"
@@ -414,7 +415,7 @@ def one_shot_diagnose(
     Accepts leaf image + location, returns vision classification + 3-part accordion treatment plan,
     saves structured diagnosis record to DB, and persists conversation turns.
     """
-    if not file.content_type.startswith("image/"):
+    if file.content_type and not (file.content_type.startswith("image/") or file.content_type == "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Uploaded file is not an image.")
     
     suffix = os.path.splitext(file.filename)[1] or ".jpg"
