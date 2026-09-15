@@ -36,9 +36,22 @@ export const AgriSmartAPI = {
   checkHealth: () => apiFetch<{ status: string; modules: string[] }>("/health"),
 
   // Auth & Profile
-  getCurrentUser: (userId = "usr_david_miller") => apiFetch<User>(`/api/users/${userId}`),
+  login: (loginId: string, password: string) =>
+    apiFetch<User>("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ login_id: loginId, password }),
+    }),
+  register: (data: { full_name: string; email: string; password?: string; phone_number?: string; language?: string }) =>
+    apiFetch<User>("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  getCurrentUser: (userId = "usr_david_miller", email?: string) => 
+    apiFetch<User>(`/api/auth/me?${email ? `email=${encodeURIComponent(email)}&` : ""}user_id=${userId}`),
   updateLanguage: (language: string) =>
-    apiFetch<{ status: string; preferred_language: string }>("/api/users/language", {
+    apiFetch<{ status: string; preferred_language: string }>("/api/auth/language", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ language }),
@@ -56,6 +69,10 @@ export const AgriSmartAPI = {
       body: formData,
     });
   },
+  getRecentDiagnoses: (userId?: string, limit = 12) =>
+    apiFetch<any[]>(`/api/diagnoses/recent?${userId ? `user_id=${userId}&` : ""}limit=${limit}`),
+  getDiagnosisDetail: (diagId: string) =>
+    apiFetch<any>(`/api/diagnoses/${diagId}`),
 
   // Chat & Multi-Turn Memory
   sendMessage: (query: string, sessionId?: string, location?: string) =>

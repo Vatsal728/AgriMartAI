@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, MapPin, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { AgriSmartAPI } from "@/lib/api";
 
 const seasons = ["Kharif", "Rabi", "Zaid"] as const;
 type Season = (typeof seasons)[number];
@@ -14,6 +15,36 @@ export default function CropRecommendationPage() {
   const { t } = useLanguage();
   const [season, setSeason] = useState<Season>("Kharif");
   const [ph, setPh] = useState(6.5);
+  const [soilType, setSoilType] = useState("Loamy");
+  const [temp, setTemp] = useState(26.5);
+  const [humidity, setHumidity] = useState(65);
+  const [rainfall, setRainfall] = useState(120);
+  const [locationName, setLocationName] = useState("Ahmedabad, Gujarat");
+  const [previousCrop, setPreviousCrop] = useState("Wheat");
+
+  useEffect(() => {
+    let cancelled = false;
+    AgriSmartAPI.getLiveWeather()
+      .then((res) => {
+        if (cancelled) return;
+        if (res.temperature_c) setTemp(Math.round(res.temperature_c * 10) / 10);
+        if (res.humidity_pct) setHumidity(Math.round(res.humidity_pct));
+        if (res.location) setLocationName(res.location);
+      })
+      .catch(() => {});
+
+    AgriSmartAPI.getSoilTelemetry()
+      .then((res) => {
+        if (cancelled) return;
+        if (res.soil_ph) setPh(Number(res.soil_ph));
+        if (res.soil_type) setSoilType(res.soil_type);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="mx-auto flex w-full max-w-[1024px] flex-col gap-8 px-4 py-8 sm:px-8 sm:py-10">
@@ -33,12 +64,15 @@ export default function CropRecommendationPage() {
           <div className="flex flex-col gap-2">
             <label className="text-sm font-semibold text-[#1a3c34]">{t("cropRecommendation.soilType")}</label>
             <div className="relative">
-              <select className="w-full appearance-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-[#1a3c34] focus:outline-none">
-                <option>{t("cropRecommendation.selectSoilType")}</option>
-                <option>{t("cropRecommendation.soil.loamy")}</option>
-                <option>{t("cropRecommendation.soil.sandy")}</option>
-                <option>{t("cropRecommendation.soil.clay")}</option>
-                <option>{t("cropRecommendation.soil.silty")}</option>
+              <select 
+                value={soilType}
+                onChange={(e) => setSoilType(e.target.value)}
+                className="w-full appearance-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-[#1a3c34] focus:outline-none"
+              >
+                <option value="Loamy">{t("cropRecommendation.soil.loamy")}</option>
+                <option value="Sandy">{t("cropRecommendation.soil.sandy")}</option>
+                <option value="Clay">{t("cropRecommendation.soil.clay")}</option>
+                <option value="Silty">{t("cropRecommendation.soil.silty")}</option>
               </select>
               <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-3 -translate-y-1/2 text-slate-400" />
             </div>
@@ -72,7 +106,8 @@ export default function CropRecommendationPage() {
             <div className="relative">
               <input
                 type="number"
-                defaultValue={24.5}
+                value={temp}
+                onChange={(e) => setTemp(Number(e.target.value))}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-[#1a3c34] focus:outline-none"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-text-muted">°C</span>
@@ -84,7 +119,8 @@ export default function CropRecommendationPage() {
             <div className="relative">
               <input
                 type="number"
-                defaultValue={65}
+                value={humidity}
+                onChange={(e) => setHumidity(Number(e.target.value))}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-[#1a3c34] focus:outline-none"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-text-muted">%</span>
@@ -96,7 +132,8 @@ export default function CropRecommendationPage() {
             <div className="relative">
               <input
                 type="number"
-                defaultValue={150}
+                value={rainfall}
+                onChange={(e) => setRainfall(Number(e.target.value))}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-[#1a3c34] focus:outline-none"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-text-muted">mm</span>
@@ -128,6 +165,8 @@ export default function CropRecommendationPage() {
               <MapPin className="pointer-events-none absolute left-4 top-1/2 size-3 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
+                value={locationName}
+                onChange={(e) => setLocationName(e.target.value)}
                 placeholder={t("cropRecommendation.searchLocation")}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-[#1a3c34] placeholder:text-slate-400 focus:outline-none"
               />
@@ -137,12 +176,15 @@ export default function CropRecommendationPage() {
           <div className="flex flex-col gap-2">
             <label className="text-sm font-semibold text-[#1a3c34]">{t("cropRecommendation.previousCrop")}</label>
             <div className="relative">
-              <select className="w-full appearance-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-[#1a3c34] focus:outline-none">
-                <option>{t("cropRecommendation.selectPreviousCrop")}</option>
-                <option>{t("dashboard.scan.tomato")}</option>
-                <option>{t("dashboard.scan.wheat")}</option>
-                <option>{t("dashboard.scan.corn")}</option>
-                <option>{t("dashboard.scan.soybean")}</option>
+              <select 
+                value={previousCrop}
+                onChange={(e) => setPreviousCrop(e.target.value)}
+                className="w-full appearance-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-[#1a3c34] focus:outline-none"
+              >
+                <option value="Tomato">{t("dashboard.scan.tomato")}</option>
+                <option value="Wheat">{t("dashboard.scan.wheat")}</option>
+                <option value="Corn">{t("dashboard.scan.corn")}</option>
+                <option value="Soybean">{t("dashboard.scan.soybean")}</option>
               </select>
               <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-3 -translate-y-1/2 text-slate-400" />
             </div>

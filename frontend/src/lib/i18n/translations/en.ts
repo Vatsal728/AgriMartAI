@@ -12,7 +12,7 @@ const en = {
   "common.notifications": "Notifications",
   "common.or": "OR",
   "common.aiModelOnline": "AI Model Online",
-  "common.copyright": "© 2024 AgriSmart AI",
+  "common.copyright": "© 2026 AgriSmart AI",
   "common.helpCenter": "Help Center",
   "common.privacyPolicy": "Privacy Policy",
 
@@ -38,7 +38,7 @@ const en = {
   "login.or": "or",
   "login.continueWithOtp": "Continue with OTP",
   "login.logInWith": "Or log in with",
-  "login.footer.rights": "© 2024 AgriSmart AI Solutions. All rights reserved.",
+  "login.footer.rights": "© 2026 AgriSmart AI Solutions. All rights reserved.",
   "login.footer.terms": "Terms of Service",
   "login.footer.contactSupport": "Contact Support",
   "login.error.emailRequired": "Email is required",

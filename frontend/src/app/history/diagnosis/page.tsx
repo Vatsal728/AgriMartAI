@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -49,13 +49,36 @@ const accordions: { id: string; title: TranslationKey; icon: typeof ShieldAlert;
 export default function DiagnosisDetailPage() {
   const { t } = useLanguage();
   const [open, setOpen] = useState("precautions");
+  const [diagData, setDiagData] = useState<any>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const diagId = urlParams.get("id");
+
+    if (diagId) {
+      fetch(`http://localhost:8080/api/diagnoses/${diagId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.id) setDiagData(data);
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  const diseaseName = diagData?.disease_name ?? t("diagnosis.diseaseName");
+  const scientificName = diagData?.scientific_name ?? "Alternaria solani";
+  const confidence = diagData ? `${Math.round(diagData.confidence * 100)}%` : "98.4%";
+  const cropType = diagData?.crop ?? t("diagnosis.cropTypeValue");
+  const scanImage = diagData?.image_url?.startsWith("/") ? diagData.image_url : "/images/chat-leaf-thumb.png";
+  const scanDate = diagData ? new Date(diagData.created_at || Date.now()).toLocaleDateString() : "Oct 24, 2023";
 
   return (
     <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-4 py-8 sm:px-8 sm:py-10">
       <div className="flex items-center gap-2 text-sm text-text-muted">
         <Link href="/history" className="font-medium">{t("diagnosis.breadcrumbHistory")}</Link>
         <ChevronRight className="size-3" />
-        <span className="font-semibold text-slate-900">{t("diagnosis.scanDetailsId")}</span>
+        <span className="font-semibold text-slate-900">{diagData ? diagData.id : t("diagnosis.scanDetailsId")}</span>
       </div>
 
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -63,17 +86,24 @@ export default function DiagnosisDetailPage() {
           <h1 className="font-heading text-3xl font-bold text-slate-900">{t("diagnosis.title")}</h1>
           <p className="text-base text-text-muted">{t("diagnosis.subtitle")}</p>
         </div>
-        <button type="button" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-800 shadow-sm">
+        <Link href="/scan-leaf" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-800 shadow-sm">
           <ScanLine className="size-4" />
           {t("diagnosis.rescan")}
-        </button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[428px_1fr]">
         {/* Leaf image */}
         <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl">
-            <Image src="/images/chat-leaf-thumb.png" alt={t("diagnosis.imageAlt")} fill sizes="428px" className="object-cover" />
+            <Image 
+              src={scanImage} 
+              alt={t("diagnosis.imageAlt")} 
+              fill 
+              sizes="428px" 
+              unoptimized={scanImage.startsWith("blob:") || scanImage.startsWith("data:")}
+              className="object-cover" 
+            />
             <span className="absolute left-4 top-4 rounded-full bg-black/50 px-4 py-1.5 text-xs font-bold text-white backdrop-blur-sm">
               {t("diagnosis.infectedArea")}
             </span>
@@ -92,12 +122,12 @@ export default function DiagnosisDetailPage() {
           <div className="flex flex-col gap-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
             <div className="flex items-start justify-between">
               <div>
-                <h2 className="font-heading text-3xl font-bold text-slate-900">{t("diagnosis.diseaseName")}</h2>
-                <p className="pt-1 text-lg italic text-text-muted">Alternaria solani</p>
+                <h2 className="font-heading text-3xl font-bold text-slate-900">{diseaseName}</h2>
+                <p className="pt-1 text-lg italic text-text-muted">{scientificName}</p>
               </div>
               <div className="rounded-2xl bg-surface-muted px-6 py-3 text-center">
                 <p className="text-xs font-bold uppercase tracking-wide text-text-muted">{t("diagnosis.confidence")}</p>
-                <p className="font-heading text-2xl font-bold text-brand">98.4%</p>
+                <p className="font-heading text-2xl font-bold text-brand">{confidence}</p>
               </div>
             </div>
 
@@ -108,7 +138,7 @@ export default function DiagnosisDetailPage() {
                 </div>
                 <div>
                   <p className="text-xs font-medium text-text-faint">{t("diagnosis.date")}</p>
-                  <p className="text-sm font-bold text-slate-800">Oct 24, 2023</p>
+                  <p className="text-sm font-bold text-slate-800">{scanDate}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -117,7 +147,7 @@ export default function DiagnosisDetailPage() {
                 </div>
                 <div>
                   <p className="text-xs font-medium text-text-faint">{t("cropRecommendation.location")}</p>
-                  <p className="text-sm font-bold text-slate-800">Plot B-12 (North)</p>
+                  <p className="text-sm font-bold text-slate-800">{diagData?.field_id || "Plot B-12 (North)"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -126,12 +156,14 @@ export default function DiagnosisDetailPage() {
                 </div>
                 <div>
                   <p className="text-xs font-medium text-text-faint">{t("diagnosis.cropType")}</p>
-                  <p className="text-sm font-bold text-slate-800">{t("diagnosis.cropTypeValue")}</p>
+                  <p className="text-sm font-bold text-slate-800">{cropType}</p>
                 </div>
               </div>
             </div>
 
-            <p className="text-sm leading-relaxed text-slate-600">{t("diagnosis.description")}</p>
+            <p className="text-sm leading-relaxed text-slate-600">
+              {diagData?.treatment_plan?.precautions_immediate || t("diagnosis.description")}
+            </p>
           </div>
 
           {/* Accordions */}

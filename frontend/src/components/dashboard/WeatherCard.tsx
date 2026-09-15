@@ -16,7 +16,7 @@ type WeatherState = {
 };
 
 const FALLBACK: WeatherState = {
-  location: "Central Farm, Iowa",
+  location: "Ahmedabad, Gujarat, India",
   temperatureC: 28,
   conditions: "dashboard.weather.partlyCloudy",
   humidityPct: 65,

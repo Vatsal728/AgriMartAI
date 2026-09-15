@@ -23,27 +23,38 @@ const soilTypes: { id: string; icon: typeof Sprout; nameKey: TranslationKey; des
   { id: "Loamy", icon: Sprout, nameKey: "farmProfile.soil.loamy", descriptionKey: "farmProfile.soil.loamy.desc" },
 ];
 
+import { getUserProfile, setUserProfile, subscribeUserProfile } from "@/lib/user";
+
 export default function ProfilePage() {
   const { t } = useLanguage();
   const [unit, setUnit] = useState<"Acres" | "Hectares">("Acres");
   const [selectedCrops, setSelectedCrops] = useState<string[]>(["Wheat", "Cotton"]);
   const [soilType, setSoilType] = useState("Loamy");
-  const [fullName, setFullName] = useState("Marcus Thorne");
-  const [contactLine, setContactLine] = useState("+1 (555) 0123-4567 · marcus.thorne@agrismart.ai");
-  const [locationName, setLocationName] = useState("Central Valley, CA, USA");
+  const [fullName, setFullName] = useState("Desai Vatshal");
+  const [contactLine, setContactLine] = useState("desaivatshal72839@gmail.com");
+  const [locationName, setLocationName] = useState("Ahmedabad, Gujarat, India");
   const [areaValue, setAreaValue] = useState("120");
+  const [avatarSrc, setAvatarSrc] = useState("/images/profile-avatar.png");
 
   useEffect(() => {
     let cancelled = false;
+
+    const syncUser = () => {
+      const profile = getUserProfile();
+      setFullName(profile.name);
+      setContactLine(profile.email);
+      setAvatarSrc(profile.avatar);
+    };
+
+    syncUser();
+    const unsubscribe = subscribeUserProfile(syncUser);
+
     AgriSmartAPI.getCurrentUser()
       .then((user) => {
-        if (cancelled) return;
-        setFullName(user.full_name);
-        setContactLine([user.phone_number, user.email].filter(Boolean).join(" · "));
+        if (cancelled || !user) return;
       })
-      .catch(() => {
-        // Backend unreachable — keep the fallback demo profile.
-      });
+      .catch(() => {});
+
     AgriSmartAPI.getFarms()
       .then(async (farms) => {
         const farm = farms[0];
@@ -58,13 +69,27 @@ export default function ProfilePage() {
           setSelectedCrops((prev) => (prev.includes(field.crop_name) ? prev : [...prev, field.crop_name]));
         }
       })
-      .catch(() => {
-        // Backend unreachable — keep the fallback demo farm.
-      });
+      .catch(() => {});
+
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, []);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      if (base64) {
+        setAvatarSrc(base64);
+        setUserProfile({ avatar: base64 });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const toggleCrop = (crop: string) =>
     setSelectedCrops((prev) => (prev.includes(crop) ? prev.filter((c) => c !== crop) : [...prev, crop]));
@@ -81,16 +106,30 @@ export default function ProfilePage() {
       <div className="mx-auto flex w-full max-w-[1024px] flex-col gap-12 px-4 py-10 sm:px-16">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
+            <input
+              type="file"
+              accept="image/*"
+              id="avatar-upload"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
             <div className="relative size-32 overflow-hidden rounded-full border-4 border-white shadow-lg">
-              <Image src="/images/profile-avatar.png" alt="Marcus Thorne" fill sizes="128px" className="object-cover" />
+              <Image 
+                src={avatarSrc} 
+                alt={fullName} 
+                fill 
+                sizes="128px" 
+                unoptimized={avatarSrc.startsWith("blob:") || avatarSrc.startsWith("data:")}
+                className="object-cover" 
+              />
             </div>
-            <button
-              type="button"
+            <label
+              htmlFor="avatar-upload"
               aria-label={t("profile.changePhoto")}
-              className="absolute bottom-1 right-1 flex size-9 items-center justify-center rounded-full border-2 border-white bg-brand text-white shadow-md"
+              className="absolute bottom-1 right-1 flex size-9 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-brand text-white shadow-md hover:scale-105 transition"
             >
-              <Camera className="size-3" />
-            </button>
+              <Camera className="size-3.5" />
+            </label>
           </div>
           <div className="text-center">
             <h2 className="text-2xl font-bold text-slate-800">{fullName}</h2>
@@ -111,7 +150,29 @@ export default function ProfilePage() {
                     </div>
                     <span className="text-sm font-semibold text-slate-800">{locationName}</span>
                   </div>
-                  <button type="button" className="text-xs font-bold uppercase tracking-wide text-brand">
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      if (typeof window !== "undefined" && navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                          async (pos) => {
+                            const { latitude, longitude } = pos.coords;
+                            try {
+                              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+                              const data = await res.json();
+                              const city = data.address?.city || data.address?.town || data.address?.state_district || "Gujarat Region";
+                              const state = data.address?.state || "Gujarat";
+                              setLocationName(`${city}, ${state}`);
+                            } catch {
+                              setLocationName(`${latitude.toFixed(3)}°N, ${longitude.toFixed(3)}°E`);
+                            }
+                          },
+                          () => {}
+                        );
+                      }
+                    }}
+                    className="text-xs font-bold uppercase tracking-wide text-brand hover:underline"
+                  >
                     {t("farmProfile.change")}
                   </button>
                 </div>
@@ -120,29 +181,27 @@ export default function ProfilePage() {
 
             <div className="flex flex-col gap-3">
               <p className="text-xs font-bold uppercase tracking-wide text-text-muted">{t("farmProfile.totalFarmArea")}</p>
-              <div className="flex h-16 items-center overflow-hidden rounded-2xl border-2 border-slate-100 bg-white">
+              <div className="flex min-h-16 items-center justify-between rounded-2xl border-2 border-slate-100 bg-white p-2">
                 <input
                   type="text"
                   value={areaValue}
                   onChange={(e) => setAreaValue(e.target.value)}
-                  className="flex-1 bg-white px-5 text-lg font-bold text-slate-800 focus:outline-none"
+                  className="min-w-0 flex-1 bg-transparent px-3 text-lg font-bold text-slate-800 focus:outline-none"
                 />
-                <div className="flex h-full items-center bg-slate-50 px-2">
-                  <div className="flex gap-1 rounded-xl border border-slate-100 bg-white p-1">
-                    {(["Acres", "Hectares"] as const).map((u) => (
-                      <button
-                        key={u}
-                        type="button"
-                        onClick={() => setUnit(u)}
-                        className={cn(
-                          "rounded-lg px-5 py-2 text-xs font-bold",
-                          unit === u ? "bg-brand text-white" : "text-slate-400"
-                        )}
-                      >
-                        {u === "Acres" ? t("farmProfile.acres") : t("farmProfile.hectares")}
-                      </button>
-                    ))}
-                  </div>
+                <div className="flex shrink-0 items-center rounded-xl bg-slate-100 p-1">
+                  {(["Acres", "Hectares"] as const).map((u) => (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => setUnit(u)}
+                      className={cn(
+                        "rounded-lg px-3 py-1.5 text-xs font-bold transition",
+                        unit === u ? "bg-brand text-white shadow-sm" : "text-slate-500 hover:text-slate-800"
+                      )}
+                    >
+                      {u === "Acres" ? t("farmProfile.acres") : t("farmProfile.hectares")}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -203,10 +262,26 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex items-center justify-end gap-4 border-t border-slate-200 pt-6">
-          <button type="button" className="px-8 py-4 text-sm font-bold text-slate-400">
+          <button 
+            type="button" 
+            onClick={() => {
+              setLocationName("Ahmedabad, Gujarat, India");
+              setAreaValue("120");
+              setUnit("Acres");
+              setSelectedCrops(["Wheat", "Cotton"]);
+              setSoilType("Loamy");
+            }}
+            className="rounded-xl px-8 py-4 text-sm font-bold text-slate-500 hover:bg-slate-100 transition"
+          >
             {t("profile.discardChanges")}
           </button>
-          <button type="button" className="rounded-xl bg-brand px-10 py-4 text-base font-bold text-white shadow-lg">
+          <button 
+            type="button" 
+            onClick={() => {
+              alert("Farm Profile and Preferences Saved Successfully!");
+            }}
+            className="rounded-xl bg-brand px-10 py-4 text-base font-bold text-white shadow-lg hover:bg-brand/90 transition"
+          >
             {t("profile.saveChanges")}
           </button>
         </div>

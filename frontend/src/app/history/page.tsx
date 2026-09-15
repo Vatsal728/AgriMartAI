@@ -1,18 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Bell, ChevronDown, MessageCircleQuestion } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import type { TranslationKey } from "@/lib/i18n/LanguageContext";
+import { AgriSmartAPI } from "@/lib/api";
 
 type Status = "healthy" | "diseased";
 type Severity = "Optimal" | "Mild" | "Severe";
 
 type Scan = {
   id: string;
-  name: TranslationKey;
+  name: TranslationKey | string;
+  rawName?: string;
   date: string;
   status: Status;
   severity: Severity;
@@ -47,11 +49,51 @@ const filters: { label: TranslationKey; value: "all" | "healthy" | "diseased" | 
 export default function HistoryPage() {
   const { t } = useLanguage();
   const [filter, setFilter] = useState<(typeof filters)[number]["value"]>("all");
+  const [dbScans, setDbScans] = useState<any[]>([]);
+  const [dbSessions, setDbSessions] = useState<any[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    AgriSmartAPI.getRecentDiagnoses()
+      .then((res: any) => {
+        if (!cancelled && Array.isArray(res)) setDbScans(res);
+      })
+      .catch(() => {});
+
+    AgriSmartAPI.getSessions()
+      .then((res: any) => {
+        if (!cancelled && Array.isArray(res)) setDbSessions(res);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const displayScans = useMemo(() => {
+    const dbItems = dbScans.map((d) => ({
+      id: d.id,
+      name: d.disease_name,
+      rawName: d.disease_name,
+      date: new Date(d.created_at || Date.now()).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      status: (d.disease_name || "").toLowerCase().includes("healthy") ? ("healthy" as Status) : ("diseased" as Status),
+      severity: (d.severity as Severity) || "Mild",
+      image: d.image_url?.startsWith("/") ? d.image_url : "/images/result-leaf-large.png",
+      aiAnalyzed: true,
+    }));
+    return [...dbItems, ...scans];
+  }, [dbScans]);
 
   const filtered = useMemo(() => {
-    if (filter === "all" || filter === "week") return scans;
-    return scans.filter((s) => s.status === filter);
-  }, [filter]);
+    if (filter === "all" || filter === "week") return displayScans;
+    return displayScans.filter((s) => s.status === filter);
+  }, [filter, displayScans]);
 
   return (
     <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-4 py-8 sm:px-8 sm:py-10">
@@ -94,14 +136,22 @@ export default function HistoryPage() {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {filtered.map((scan) => {
-          const s = severityStyles[scan.severity];
+          const s = severityStyles[scan.severity] || severityStyles.Mild;
           return (
-            <div
+            <Link
               key={scan.id}
-              className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+              href={`/history/diagnosis?id=${scan.id}`}
+              className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all hover:border-brand/40 hover:shadow-md"
             >
               <div className="relative h-44 w-full">
-                <Image src={scan.image} alt={t(scan.name)} fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover" />
+                <Image 
+                  src={scan.image} 
+                  alt={typeof scan.name === "string" ? scan.name : t(scan.name)} 
+                  fill 
+                  sizes="(min-width: 1024px) 25vw, 50vw" 
+                  unoptimized={scan.image.startsWith("blob:") || scan.image.startsWith("data:")}
+                  className="object-cover transition-transform duration-300 group-hover:scale-105" 
+                />
                 {scan.aiAnalyzed && (
                   <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
                     {t("history.aiAnalyzed")}
@@ -110,7 +160,9 @@ export default function HistoryPage() {
               </div>
               <div className="flex flex-col gap-1 p-5">
                 <div className="flex items-start justify-between">
-                  <p className="font-extrabold text-slate-900">{t(scan.name)}</p>
+                  <p className="font-extrabold text-slate-900 group-hover:text-brand">
+                    {scan.rawName || (typeof scan.name === "string" ? scan.name : t(scan.name))}
+                  </p>
                   <span className={`mt-1 size-3 shrink-0 rounded-full ${s.dot}`} />
                 </div>
                 <p className="text-xs text-text-muted">{scan.date}</p>
@@ -120,10 +172,33 @@ export default function HistoryPage() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
+
+      {dbSessions.length > 0 && (
+        <div className="flex flex-col gap-4 border-t border-slate-200 pt-8">
+          <h2 className="font-heading text-xl font-bold text-slate-900">Recent Chat Consultations</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {dbSessions.map((ses) => (
+              <Link
+                key={ses.id}
+                href="/chat-assistant"
+                onClick={() => sessionStorage.setItem("chat-session-id", ses.id)}
+                className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-accent hover:shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-bold text-brand">{ses.crop || "General"}</span>
+                  <span className="text-xs text-slate-400">{new Date(ses.updated_at || Date.now()).toLocaleDateString()}</span>
+                </div>
+                <p className="font-bold text-slate-800">{ses.title}</p>
+                <p className="text-xs text-slate-500">{ses.location || "Ahmedabad, Gujarat"}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-between border-t border-slate-200 pt-8">
         <p className="text-[13px] font-medium text-text-muted">{t("scanLeaf.treatment.source")}</p>

@@ -29,6 +29,32 @@ export default function FarmProfileSetupPage() {
   const [unit, setUnit] = useState<"Acres" | "Hectares">("Acres");
   const [selectedCrops, setSelectedCrops] = useState<string[]>(["Wheat"]);
   const [soilType, setSoilType] = useState("Loamy");
+  const [locationName, setLocationName] = useState("Ahmedabad, Gujarat, India");
+  const [isDetecting, setIsDetecting] = useState(false);
+
+  const detectLocation = () => {
+    if (typeof window === "undefined" || !navigator.geolocation) return;
+    setIsDetecting(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+          const data = await res.json();
+          const city = data.address?.city || data.address?.town || data.address?.state_district || "Detected Farm Region";
+          const state = data.address?.state || "Gujarat";
+          setLocationName(`${city}, ${state}`);
+        } catch {
+          setLocationName(`${latitude.toFixed(3)}°N, ${longitude.toFixed(3)}°E`);
+        } finally {
+          setIsDetecting(false);
+        }
+      },
+      () => {
+        setIsDetecting(false);
+      }
+    );
+  };
 
   const toggleCrop = (crop: string) =>
     setSelectedCrops((prev) => (prev.includes(crop) ? prev.filter((c) => c !== crop) : [...prev, crop]));
@@ -71,10 +97,14 @@ export default function FarmProfileSetupPage() {
                     <div className="flex size-8 items-center justify-center rounded-lg bg-brand/10">
                       <MapPin className="size-3.5 text-brand" />
                     </div>
-                    <span className="text-sm font-semibold text-slate-800">Central Valley, CA, USA</span>
+                    <span className="text-sm font-semibold text-slate-800">{locationName}</span>
                   </div>
-                  <button type="button" className="text-xs font-bold uppercase tracking-wide text-brand">
-                    {t("farmProfile.change")}
+                  <button 
+                    type="button" 
+                    onClick={detectLocation}
+                    className="text-xs font-bold uppercase tracking-wide text-brand hover:underline"
+                  >
+                    {isDetecting ? "Detecting..." : "Auto Detect GPS"}
                   </button>
                 </div>
               </div>

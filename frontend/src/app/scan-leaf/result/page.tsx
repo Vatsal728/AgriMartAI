@@ -28,6 +28,11 @@ export default function ScanLeafResultPage() {
     }
   });
 
+  const [imageSrc] = useState<string>(() => {
+    if (typeof window === "undefined") return "/images/result-leaf-large.png";
+    return sessionStorage.getItem("scan-leaf-image") || "/images/result-leaf-large.png";
+  });
+
   const record = diagnosis?.diagnosis_record;
   const confidencePct = diagnosis ? Math.round(diagnosis.prediction.confidence * 100) : null;
 
@@ -54,10 +59,11 @@ export default function ScanLeafResultPage() {
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="relative aspect-square w-full overflow-hidden rounded-xl">
             <Image
-              src="/images/result-leaf-large.png"
+              src={imageSrc}
               alt={t("scanLeaf.result.imageAlt")}
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
+              unoptimized={imageSrc.startsWith("blob:") || imageSrc.startsWith("data:")}
               className="object-cover"
             />
             <div className="absolute left-[38%] top-1/4 h-1/4 w-1/5 rounded-lg border-4 border-accent shadow-[0_0_0_9999px_rgba(0,0,0,0.3)]">

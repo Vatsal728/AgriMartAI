@@ -44,6 +44,11 @@ export default function TreatmentAdvicePage() {
     }
   });
 
+  const [imageSrc] = useState<string>(() => {
+    if (typeof window === "undefined") return "/images/result-leaf-large.png";
+    return sessionStorage.getItem("scan-leaf-image") || "/images/result-leaf-large.png";
+  });
+
   const record = diagnosis?.diagnosis_record;
   const products = diagnosis?.recommended_products ?? [];
 
@@ -70,7 +75,14 @@ export default function TreatmentAdvicePage() {
         <div className="flex flex-col gap-6">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl">
-              <Image src="/images/result-leaf-large.png" alt={t("scanLeaf.treatment.imageAlt")} fill sizes="420px" className="object-cover" />
+              <Image 
+                src={imageSrc} 
+                alt={t("scanLeaf.treatment.imageAlt")} 
+                fill 
+                sizes="420px" 
+                unoptimized={imageSrc.startsWith("blob:") || imageSrc.startsWith("data:")}
+                className="object-cover" 
+              />
               <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded bg-black/60 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white">
                 <Crosshair className="size-2.5" />
                 {t("scanLeaf.treatment.analyzedTarget")}

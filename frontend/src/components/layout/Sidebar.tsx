@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,10 +8,41 @@ import { Leaf, ChevronRight } from "lucide-react";
 import { navSections } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { AgriSmartAPI } from "@/lib/api";
+
+import { getUserProfile, subscribeUserProfile } from "@/lib/user";
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const [userName, setUserName] = useState("Desai Vatshal");
+  const [userPlan, setUserPlan] = useState("Premium Plan");
+  const [avatarSrc, setAvatarSrc] = useState("/images/profile-avatar.png");
+
+  useEffect(() => {
+    const syncUser = () => {
+      const profile = getUserProfile();
+      setUserName(profile.name);
+      setAvatarSrc(profile.avatar);
+    };
+
+    syncUser();
+    const unsubscribe = subscribeUserProfile(syncUser);
+
+    let cancelled = false;
+    AgriSmartAPI.getCurrentUser()
+      .then((u) => {
+        if (!cancelled && u) {
+          if (u.subscription_plan) setUserPlan(u.subscription_plan);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, []);
 
   return (
     <div className="flex h-full w-full flex-col justify-between bg-surface">
@@ -58,21 +90,22 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/profile"
           onClick={onNavigate}
-          className="flex items-center justify-between rounded-2xl bg-surface-muted p-3"
+          className="flex items-center justify-between rounded-2xl bg-surface-muted p-3 hover:bg-slate-200/60 transition"
         >
           <div className="flex items-center gap-3">
-            <div className="relative size-10 shrink-0 overflow-hidden rounded-full">
+            <div className="relative size-10 shrink-0 overflow-hidden rounded-full border border-slate-200">
               <Image
-                src="/images/david-miller.png"
-                alt="David Miller"
+                src={avatarSrc}
+                alt={userName}
                 fill
                 sizes="40px"
+                unoptimized={avatarSrc.startsWith("blob:") || avatarSrc.startsWith("data:")}
                 className="object-cover"
               />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-800">David Miller</p>
-              <p className="text-[11px] text-text-muted">{t("nav.premiumPlan")}</p>
+              <p className="text-sm font-bold text-slate-800">{userName}</p>
+              <p className="text-[11px] text-text-muted">{userPlan}</p>
             </div>
           </div>
           <ChevronRight className="size-3 text-text-muted" />

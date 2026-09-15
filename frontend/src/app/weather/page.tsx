@@ -29,7 +29,7 @@ type CurrentConditions = {
 };
 
 const FALLBACK_CONDITIONS: CurrentConditions = {
-  location: "Sacramento Valley, CA",
+  location: "Ahmedabad, Gujarat, India",
   temperatureC: 28,
   humidityPct: 42,
   rainProbabilityPct: 12,

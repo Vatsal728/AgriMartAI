@@ -7,6 +7,7 @@ import { Leaf, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import type { TranslationKey } from "@/lib/i18n/LanguageContext";
+import { formatNameFromEmail, setUserProfile } from "@/lib/user";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_SPECIAL_CHAR_PATTERN = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/;
@@ -35,9 +36,12 @@ function getPasswordError(password: string, t: (key: TranslationKey) => string):
   return undefined;
 }
 
+import { AgriSmartAPI } from "@/lib/api";
+
 interface FormErrors {
   email?: string;
   password?: string;
+  general?: string;
 }
 
 export default function LoginPage() {
@@ -48,6 +52,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-surface-muted px-4 py-16">
@@ -66,7 +71,10 @@ export default function LoginPage() {
         <div className="flex rounded-2xl bg-surface-muted p-1">
           <button
             type="button"
-            onClick={() => setMode("login")}
+            onClick={() => {
+              setMode("login");
+              setErrors({});
+            }}
             className={cn(
               "flex-1 rounded-xl py-3 text-sm font-bold",
               mode === "login" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400"
@@ -76,7 +84,10 @@ export default function LoginPage() {
           </button>
           <button
             type="button"
-            onClick={() => setMode("signup")}
+            onClick={() => {
+              setMode("signup");
+              setErrors({});
+            }}
             className={cn(
               "flex-1 rounded-xl py-3 text-sm font-bold",
               mode === "signup" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400"
@@ -95,8 +106,14 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {errors.general && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-center text-sm font-semibold text-red-600">
+            {errors.general}
+          </div>
+        )}
+
         <form
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             const emailError = getEmailError(email, t);
             const passwordError = getPasswordError(password, t);
@@ -105,7 +122,32 @@ export default function LoginPage() {
               return;
             }
             setErrors({});
-            router.push(mode === "login" ? "/dashboard" : "/onboarding/language");
+            setIsLoading(true);
+
+            try {
+              const displayName = formatNameFromEmail(email);
+
+              if (mode === "signup") {
+                // Register new farmer in SQLite DB
+                const user = await AgriSmartAPI.register({
+                  full_name: displayName,
+                  email: email.trim().toLowerCase(),
+                  password,
+                });
+                setUserProfile({ email: user.email || email, name: user.full_name || displayName });
+                router.push("/onboarding/language");
+              } else {
+                // Authenticate existing farmer against SQLite DB
+                const user = await AgriSmartAPI.login(email.trim().toLowerCase(), password);
+                setUserProfile({ email: user.email || email, name: user.full_name || displayName });
+                router.push("/dashboard");
+              }
+            } catch (err: any) {
+              const msg = err?.message || (mode === "login" ? "Invalid email or password. Please try again or create an account." : "Registration failed. This email may already exist.");
+              setErrors({ general: msg });
+            } finally {
+              setIsLoading(false);
+            }
           }}
           className="flex flex-col gap-6"
           noValidate
@@ -201,9 +243,13 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="rounded-2xl bg-brand py-4 text-base font-bold text-white shadow-lg"
+            disabled={isLoading}
+            className={cn(
+              "rounded-2xl bg-brand py-4 text-base font-bold text-white shadow-lg transition",
+              isLoading ? "opacity-70 cursor-not-allowed" : "hover:bg-brand/90"
+            )}
           >
-            {t("common.continue")}
+            {isLoading ? (mode === "signup" ? "Creating Account..." : "Signing In...") : t("common.continue")}
           </button>
 
           <div className="flex items-center gap-4">

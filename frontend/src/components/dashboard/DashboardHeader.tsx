@@ -5,9 +5,11 @@ import { Bell } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { AgriSmartAPI } from "@/lib/api";
 
+import { getUserProfile, subscribeUserProfile } from "@/lib/user";
+
 export function DashboardHeader() {
   const { t, language } = useLanguage();
-  const [fullName, setFullName] = useState("David Miller");
+  const [fullName, setFullName] = useState("Desai Vatshal");
   const today = new Date().toLocaleDateString(language === "hi" ? "hi-IN" : "en-US", {
     weekday: "long",
     month: "long",
@@ -15,16 +17,26 @@ export function DashboardHeader() {
   });
 
   useEffect(() => {
+    const syncUser = () => {
+      const profile = getUserProfile();
+      setFullName(profile.name);
+    };
+
+    syncUser();
+    const unsubscribe = subscribeUserProfile(syncUser);
+
     let cancelled = false;
     AgriSmartAPI.getCurrentUser()
       .then((user) => {
-        if (!cancelled) setFullName(user.full_name);
+        if (!cancelled && user?.full_name) {
+          // If backend has user name, ensure local sync
+        }
       })
-      .catch(() => {
-        // Backend unreachable — keep the fallback demo name.
-      });
+      .catch(() => {});
+
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, []);
 

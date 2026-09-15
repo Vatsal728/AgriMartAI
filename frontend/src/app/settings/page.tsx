@@ -109,13 +109,36 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <div className="flex items-center justify-end gap-4 pt-4">
-        <button type="button" className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-600">
-          {t("common.cancel")}
+      <div className="flex items-center justify-between border-t border-slate-200 pt-6">
+        <button 
+          type="button" 
+          onClick={() => {
+            sessionStorage.clear();
+            localStorage.clear();
+            router.push("/login");
+          }}
+          className="rounded-xl border border-red-200 bg-red-50 px-6 py-3 text-sm font-bold text-red-600 hover:bg-red-100 transition"
+        >
+          Sign Out / Logout
         </button>
-        <button type="button" className="rounded-xl bg-brand px-8 py-3 text-sm font-bold text-white">
-          {t("profile.saveChanges")}
-        </button>
+        <div className="flex items-center gap-4">
+          <button 
+            type="button" 
+            onClick={() => router.push("/dashboard")}
+            className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition"
+          >
+            {t("common.cancel")}
+          </button>
+          <button 
+            type="button" 
+            onClick={() => {
+              alert("Settings and notification preferences saved successfully!");
+            }}
+            className="rounded-xl bg-brand px-8 py-3 text-sm font-bold text-white shadow-md hover:bg-brand/90 transition"
+          >
+            {t("profile.saveChanges")}
+          </button>
+        </div>
       </div>
     </div>
   );

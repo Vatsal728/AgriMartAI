@@ -14,7 +14,7 @@ const hi: Record<keyof typeof en, string> = {
   "common.notifications": "सूचनाएं",
   "common.or": "या",
   "common.aiModelOnline": "एआई मॉडल ऑनलाइन",
-  "common.copyright": "© 2024 एग्रीस्मार्ट एआई",
+  "common.copyright": "© 2026 एग्रीस्मार्ट एआई",
   "common.helpCenter": "सहायता केंद्र",
   "common.privacyPolicy": "गोपनीयता नीति",
 
@@ -40,7 +40,7 @@ const hi: Record<keyof typeof en, string> = {
   "login.or": "या",
   "login.continueWithOtp": "OTP से जारी रखें",
   "login.logInWith": "या इसके साथ लॉग इन करें",
-  "login.footer.rights": "© 2024 एग्रीस्मार्ट एआई सॉल्यूशंस. सर्वाधिकार सुरक्षित।",
+  "login.footer.rights": "© 2026 एग्रीस्मार्ट एआई सॉल्यूशंस. सर्वाधिकार सुरक्षित।",
   "login.footer.terms": "सेवा की शर्तें",
   "login.footer.contactSupport": "सहायता से संपर्क करें",
   "login.error.emailRequired": "ईमेल आवश्यक है",
