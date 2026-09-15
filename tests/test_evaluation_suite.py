@@ -22,6 +22,17 @@ def test_cotton_yellowing_query(retriever):
     assert "🌿" in text
     assert any(chem in text for chem in ["Imidacloprid", "Acetamiprid", "Flonicamid", "Neem", "Diafenthiuron"])
 
+def test_cotton_with_tomato_history(retriever):
+    mock_history = [
+        {"role": "user", "content": "My tomato leaves have yellow virus"},
+        {"role": "assistant", "content": "Protocol for Tomato leaf yellow virus"}
+    ]
+    res = retriever.answer_query('"my cotton plants leaves are turning yello which spray should i do of which medicine"', history=mock_history)
+    text = res["response"]
+    assert "Cotton" in text
+    assert "Tomato" not in text
+    assert "🌿" in text
+
 def test_sugarcane_query(retriever):
     res = retriever.answer_query("sugarcane red rot control treatment and medicine")
     text = res["response"]

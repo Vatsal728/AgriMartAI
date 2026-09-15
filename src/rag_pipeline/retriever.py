@@ -255,22 +255,37 @@ class AgronomyRetriever:
     def extract_conversation_state(self, history: Optional[List[Dict[str, str]]], current_query: str) -> Dict[str, Any]:
         """
         Multi-turn state tracker that extracts active crop, disease, chemical mentions, and location across conversation history.
+        Strictly isolates new queries mentioning a specific crop so past history from a different crop cannot contaminate the answer.
         """
+        clean_curr = current_query.strip('\'"` \t\r\n')
+        direct_crop = self.detect_crop(clean_curr)
+        
         state = {
-            "active_crop": self.detect_crop(current_query),
+            "active_crop": direct_crop,
             "active_disease": None,
             "active_chemical": None,
             "active_location": None,
             "is_followup": False
         }
         
-        # Check if current query is a follow-up ("it", "this", "dosage", "spray today", "organic alternative", "what about", "how much")
-        followup_triggers = ["it", "this", "that", "dosage", "dose", "spray", "sprey", "cure", "cure it", "treat it", "organic", "chemical", "alternative", "how much", "when to", "safe", "prevent"]
-        q_words = set(re.findall(r'[a-zA-Z]+', current_query.lower()))
-        if any(t in q_words for t in followup_triggers) or len(q_words) <= 6:
+        # If the user explicitly mentions a crop in the current query, this is NOT an anaphoric follow-up!
+        if direct_crop:
+            return state
+
+        # Check if current query is truly a pronoun/anaphoric follow-up ("it", "this", "dosage for this", "how much to spray", "cure it")
+        q_lower = clean_curr.lower()
+        q_tokens = set(re.findall(r'[a-zA-Z]+', q_lower))
+        pronoun_triggers = {"it", "this", "that", "these", "those", "same"}
+        followup_phrases = ["for it", "of it", "to spray it", "cure it", "treat it", "dosage", "dose", "when to spray", "how much", "safe to spray", "what about organic", "alternative medicine"]
+        
+        has_pronoun = bool(q_tokens & pronoun_triggers)
+        has_followup_phrase = any(fp in q_lower for fp in followup_phrases)
+        is_short_query = len(q_tokens) <= 5 and any(w in q_tokens for w in ["spray", "dosage", "dose", "medicine", "dawa", "organic", "chemical"])
+
+        if has_pronoun or has_followup_phrase or is_short_query:
             state["is_followup"] = True
             
-        if history:
+        if state["is_followup"] and history:
             for msg in reversed(history):
                 txt = msg.get("content", "")
                 if not state["active_crop"]:
@@ -282,10 +297,11 @@ class AgronomyRetriever:
                     for item in self.textbooks:
                         d_name = item.get("disease_name", "").lower()
                         if d_name and d_name in txt.lower():
-                            state["active_disease"] = item.get("disease_name")
-                            if not state["active_crop"]:
+                            item_crop = item.get("crop", "").lower()
+                            if not state["active_crop"] or state["active_crop"].lower() == item_crop:
+                                state["active_disease"] = item.get("disease_name")
                                 state["active_crop"] = item.get("crop")
-                            break
+                                break
                             
         return state
 
@@ -300,16 +316,18 @@ class AgronomyRetriever:
         6. Agronomy/Pest/Variety solution in 25,410+ Q&A database
         7. Synthesizes an in-depth, structured scientific field protocol.
         """
+        clean_query = query.strip('\'"` \t\r\n')
+        
         # Resolve Multi-Turn Context
-        conv_state = self.extract_conversation_state(history, query)
-        resolved_query = query
+        conv_state = self.extract_conversation_state(history, clean_query)
+        resolved_query = clean_query
         if conv_state["is_followup"] and conv_state["active_crop"]:
             if conv_state["active_disease"]:
-                resolved_query = f"{query} for {conv_state['active_disease']} in {conv_state['active_crop']}"
+                resolved_query = f"{clean_query} for {conv_state['active_disease']} in {conv_state['active_crop']}"
             else:
-                resolved_query = f"{query} in {conv_state['active_crop']}"
+                resolved_query = f"{clean_query} in {conv_state['active_crop']}"
 
-        q_lower = query.lower()
+        q_lower = clean_query.lower()
         res_lower = resolved_query.lower()
         # 0. Conversational Intent Gatekeeper (Greetings, Identity, Capabilities)
         clean_q = re.sub(r'[^a-zA-Z0-9\s]', '', q_lower).strip()
