@@ -61,3 +61,25 @@ def test_vision_predict_phototest():
         res = predict(test_img)
         assert res["status"] in ["success", "fallback"]
         assert "confidence" in res
+
+def test_topic_switch_across_turns(retriever):
+    history = []
+    # Turn 1: Sugarcane
+    res1 = retriever.answer_query("sugarcane red rot symptoms and medicine", history=history)
+    assert "Sugarcane" in res1["response"]
+    history.append({"role": "user", "content": "sugarcane red rot symptoms and medicine"})
+    history.append({"role": "assistant", "content": res1["response"]})
+
+    # Turn 2: Switch to Rice - should NOT inherit Sugarcane
+    res2 = retriever.answer_query("Spindle shaped brown spots on paddy leaves, recommend chemical treatment dosage.", history=history)
+    assert "Rice" in res2["response"]
+    assert "Sugarcane" not in res2["response"]
+    history.append({"role": "user", "content": "Spindle shaped brown spots on paddy leaves, recommend chemical treatment dosage."})
+    history.append({"role": "assistant", "content": res2["response"]})
+
+    # Turn 3: Switch to Okra - should NOT inherit Rice or Sugarcane
+    res3 = retriever.answer_query("Bore holes in ladyfinger pods, what organic or chemical spray controls it?", history=history)
+    assert "Okra" in res3["response"]
+    assert "Sugarcane" not in res3["response"]
+    assert "Rice" not in res3["response"]
+
