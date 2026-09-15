@@ -432,11 +432,29 @@ def one_shot_diagnose(
             user_prompt=user_prompt
         )
         
-        # Format 3 Figma Accordion Sections
-        precautions = "• Remove and destroy infected lower leaves to prevent spore splash to higher foliage.\n• Avoid overhead watering; use drip irrigation to keep foliage dry.\n• Improve air circulation by pruning and increasing space between plants."
-        treatment = f"• Chemical: Spray Mancozeb 75% WP @ 2.5 g/L or Chlorothalonil @ 2 g/L.\n• Biological: Apply Trichoderma viride bio-agent @ 5 g/L.\n• Repeat spray at 10-12 day intervals if disease symptoms persist."
-        prevention = "• Implement 3-year crop rotation with non-solanaceous crops (e.g. Maize, Pulses).\n• Use certified disease-resistant certified seeds / hybrid cultivars.\n• Sterilize pruning shears with 70% isopropyl alcohol between rows."
-        weather_risk = "High humidity (>80%) forecast for next 3 days may accelerate fungal spread. Ensure proper canopy drainage."
+        # Format 3 Figma Accordion Sections dynamically from Grounded ICAR / RAG Knowledge
+        rag_details = advisory_res.get("rag_details", {}) or {}
+        if not rag_details:
+            rag_matched = retriever.retrieve_guidance(pred_res["disease"])
+            rag_details = rag_matched.get("details", {}) if rag_matched else {}
+
+        chem_dose = rag_details.get("chemical_treatment")
+        org_dose = rag_details.get("organic_treatment")
+        prev_steps = rag_details.get("prevention")
+        weather_rule = rag_details.get("weather_action_rule")
+        pathogen_name = rag_details.get("pathogen", f"{pred_res['crop']} pathogen complex")
+
+        is_healthy = "healthy" in pred_res["disease"].lower()
+        if is_healthy:
+            precautions = "• Crop foliage is healthy and vigorous. Maintain regular weekly field scouting.\n• Inspect leaf undersides for early signs of pests or nutrient deficiencies."
+            treatment = f"• Organic Nutrition: {org_dose or 'Apply 10 tonnes FYM/ha + balanced vermicompost.'}\n• Fertilizer Schedule: {chem_dose or 'Maintain standard NPK fertilization schedule based on soil testing.'}"
+            prevention = f"• Cultural Practices: {prev_steps or 'Practice regular crop rotation, balanced fertigation, and clean weeding.'}"
+            weather_risk = weather_rule or "Optimal growing weather conditions for crop development."
+        else:
+            precautions = f"• Rogue out and safely destroy heavily infected leaves to prevent secondary spore spread.\n• Avoid overhead watering; use furrow or drip irrigation to keep foliage dry.\n• Ensure proper plant-to-plant spacing for sunlight and canopy airflow."
+            treatment = f"• Chemical Treatment: {chem_dose or 'Apply targeted registered fungicide or pesticide at recommended label dosage.'}\n• Organic / Biological: {org_dose or 'Apply Neem oil (3ml/L) or Trichoderma viride bio-agent (2.5g/L).'}"
+            prevention = f"• Field Sanitation: {prev_steps or 'Practice 3-year crop rotation and use certified disease-free seeds.'}"
+            weather_risk = weather_rule or "High humidity and wet foliage accelerate disease spread. Spray only during calm clear weather."
 
         # Save uploaded image to frontend public uploads directory so Next.js and API can both display it
         upload_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "uploads"))
@@ -450,7 +468,7 @@ def one_shot_diagnose(
             user_id=user_id,
             crop=pred_res["crop"],
             disease_name=pred_res["disease"],
-            scientific_name=f"{pred_res['crop']} fungal complex",
+            scientific_name=pathogen_name,
             confidence=pred_res["confidence"],
             image_url=f"/uploads/{safe_filename}",
             precautions=precautions,

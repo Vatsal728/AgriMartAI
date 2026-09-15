@@ -119,8 +119,10 @@ class AgenticAdvisor:
             "crop_category": disease_name.split()[0],
             "rag_knowledge": {
                 "source": rag_src,
-                "context": rag_ctx
+                "context": rag_ctx,
+                "details": details
             },
+            "rag_details": details,
             "environment_telemetry": {
                 "weather": weather,
                 "iot_sensors": sensors
