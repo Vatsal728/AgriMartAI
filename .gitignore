@@ -78,9 +78,12 @@ AgriSmart_AI_Master_Plan.md
 frontend/public/uploads/
 frontend/public/static/
 
-# IDE & OS
+# IDE & OS & Agent Temp
 .streamlit/
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+scratch/
+frontend/AGENTS.md
+frontend/CLAUDE.md
