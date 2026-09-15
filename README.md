@@ -199,3 +199,4 @@ Drag and drop or upload any test image using the **`+`** button in the Chat Assi
 | **Krinal Raiyani** | UI/UX Designer | [@krinalraiyani](https://github.com/krinalraiyani) |
 | **Parth Gorasiya** | Frontend Developer | [@ParthGorasiya](https://github.com/ParthGorasiya) |
 | **Dishant B Parakhiya** | ML Engineer | [@DishantParakhiya](https://github.com/DishantParakhiya) |
+| **Dharman Bhuva** | Backend Engineer | [@dharmanbhuva](https://github.com/dharmanbhuva) |
