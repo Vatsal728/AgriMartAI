@@ -145,29 +145,106 @@ def predict(image_path: str, model_type: str = "efficientnet", user_prompt: str 
                 outputs = model(img_tensor)
                 probs = F.softmax(outputs, dim=1).squeeze(0)
                 
-                # Check if farmer explicitly mentioned a crop in prompt (e.g., 'tomato', 'potato', 'apple', 'grape')
+                # Check if farmer explicitly mentioned a crop in prompt (e.g., 'cotton', 'rice', 'wheat', 'sugarcane', 'okra', 'tomato', 'potato', 'corn')
                 crop_boost_key = None
+                indian_crop_key = None
+                
                 if user_prompt:
                     p_low = user_prompt.lower()
+                    # 1. Indian crops mapped to standard pathology
+                    for c_name in ["cotton", "kapas", "gossypium", "sugarcane", "ganna", "cane", "rice", "dhan", "paddy", "wheat", "gehun", "okra", "bhindi", "bhendi", "mustard", "sarson", "groundnut", "mungfali", "onion", "pyaz", "brinjal", "baingan"]:
+                        if c_name in p_low:
+                            if c_name in ["cotton", "kapas", "gossypium"]:
+                                indian_crop_key = "Cotton"
+                            elif c_name in ["sugarcane", "ganna", "cane"]:
+                                indian_crop_key = "Sugarcane"
+                            elif c_name in ["rice", "dhan", "paddy"]:
+                                indian_crop_key = "Rice"
+                            elif c_name in ["wheat", "gehun"]:
+                                indian_crop_key = "Wheat"
+                            elif c_name in ["okra", "bhindi", "bhendi"]:
+                                indian_crop_key = "Okra"
+                            elif c_name in ["mustard", "sarson"]:
+                                indian_crop_key = "Mustard"
+                            elif c_name in ["groundnut", "mungfali"]:
+                                indian_crop_key = "Groundnut"
+                            elif c_name in ["onion", "pyaz"]:
+                                indian_crop_key = "Onion"
+                            elif c_name in ["brinjal", "baingan"]:
+                                indian_crop_key = "Brinjal"
+                            break
+                            
+                    # 2. PlantVillage standard crops
                     for c_name in ["tomato", "tamatar", "potato", "aloo", "corn", "maize", "makka", "apple", "seb", "grape", "angoor", "pepper", "chilli", "mirch", "cherry", "peach", "strawberry", "soybean", "squash", "orange", "blueberry", "raspberry"]:
                         if c_name in p_low:
                             crop_boost_key = "Pepper,_bell" if c_name in ["pepper", "chilli", "mirch"] else ("Corn_(maize)" if c_name in ["corn", "maize", "makka"] else ("Tomato" if c_name in ["tomato", "tamatar"] else ("Potato" if c_name in ["potato", "aloo"] else c_name.capitalize())))
                             break
                             
                 top_prob, top_idx = torch.max(probs, 0)
+                raw_class = _CLASS_NAMES[top_idx.item()] if _CLASS_NAMES else "Unknown"
+                conf = float(top_prob.item())
+                clean_name = raw_class.replace("___", " ").replace("__", " ").replace("_", " ").strip()
                 
-                # If farmer specified a crop and the top prediction was from an unrelated crop (cross-crop confusion due to natural field background), re-rank within that crop
-                if crop_boost_key and _CLASS_NAMES and not _CLASS_NAMES[top_idx.item()].lower().startswith(crop_boost_key.lower()):
+                # If farmer specified an Indian crop outside PlantVillage 14 crops, map visual symptoms to that crop's ICAR protocol
+                if indian_crop_key:
+                    symptom_lower = clean_name.lower()
+                    if indian_crop_key == "Cotton":
+                        if "healthy" in symptom_lower:
+                            clean_name = "Cotton Healthy"
+                        elif any(s in symptom_lower for s in ["blight", "bacterial", "spot"]):
+                            clean_name = "Cotton Bacterial Blight"
+                        elif any(s in symptom_lower for s in ["yellow", "curl", "mite", "rust", "mold"]):
+                            clean_name = "Cotton Yellowing and Sucking Pests"
+                        else:
+                            clean_name = "Cotton Yellowing and Sucking Pests"
+                    elif indian_crop_key == "Wheat":
+                        if "healthy" in symptom_lower:
+                            clean_name = "Wheat Healthy"
+                        elif any(s in symptom_lower for s in ["rust", "orange", "yellow"]):
+                            clean_name = "Wheat Yellow Rust and Stripe Rust"
+                        else:
+                            clean_name = "Wheat Brown Rust and Leaf Rust"
+                    elif indian_crop_key == "Rice":
+                        if "healthy" in symptom_lower:
+                            clean_name = "Rice Healthy"
+                        elif any(s in symptom_lower for s in ["blight", "bacterial"]):
+                            clean_name = "Rice Bacterial Leaf Blight"
+                        else:
+                            clean_name = "Rice Blast"
+                    elif indian_crop_key == "Sugarcane":
+                        if "healthy" in symptom_lower:
+                            clean_name = "Sugarcane Healthy"
+                        elif any(s in symptom_lower for s in ["smut", "mildew"]):
+                            clean_name = "Sugarcane Smut"
+                        else:
+                            clean_name = "Sugarcane Red Rot"
+                    elif indian_crop_key == "Okra":
+                        if "healthy" in symptom_lower:
+                            clean_name = "Okra Healthy"
+                        elif any(s in symptom_lower for s in ["yellow", "mosaic", "curl", "virus"]):
+                            clean_name = "Okra Yellow Vein Mosaic Virus"
+                        else:
+                            clean_name = "Okra Shoot and Fruit Borer"
+                    elif indian_crop_key == "Mustard":
+                        clean_name = "Mustard White Rust" if "healthy" not in symptom_lower else "Mustard Healthy"
+                    elif indian_crop_key == "Groundnut":
+                        clean_name = "Groundnut Tikka Leaf Spot" if "healthy" not in symptom_lower else "Groundnut Healthy"
+                    elif indian_crop_key == "Onion":
+                        clean_name = "Onion Purple Blotch" if "healthy" not in symptom_lower else "Onion Healthy"
+                    elif indian_crop_key == "Brinjal":
+                        clean_name = "Brinjal Shoot and Fruit Borer" if "healthy" not in symptom_lower else "Brinjal Healthy"
+
+                # If farmer specified a PlantVillage crop and top prediction was cross-crop confused, re-rank within that crop
+                elif crop_boost_key and _CLASS_NAMES and not _CLASS_NAMES[top_idx.item()].lower().startswith(crop_boost_key.lower()):
                     crop_indices = [i for i, name in enumerate(_CLASS_NAMES) if name.lower().startswith(crop_boost_key.lower())]
                     if crop_indices:
                         crop_probs = probs[crop_indices]
                         best_sub_idx = torch.argmax(crop_probs).item()
                         top_idx = torch.tensor(crop_indices[best_sub_idx])
                         top_prob = probs[top_idx]
-                
-                raw_class = _CLASS_NAMES[top_idx.item()] if _CLASS_NAMES else "Unknown"
-                conf = float(top_prob.item())
-                clean_name = raw_class.replace("___", " ").replace("__", " ").replace("_", " ").strip()
+                        raw_class = _CLASS_NAMES[top_idx.item()]
+                        conf = float(top_prob.item())
+                        clean_name = raw_class.replace("___", " ").replace("__", " ").replace("_", " ").strip()
                 
                 return {
                     "disease": clean_name,
