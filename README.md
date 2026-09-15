@@ -4,22 +4,22 @@
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-15803d.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-0f766e.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.5_CUDA_12.8-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Database](https://img.shields.io/badge/Database-SQLite_WAL_12_Tables-b45309.svg?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
-[![Aesthetics](https://img.shields.io/badge/UI-Figma_Design_System-6b21a8.svg?logo=figma&logoColor=white)](https://figma.com/)
+[![Database](https://img.shields.io/badge/Database-SQLite_WAL-b45309.svg?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Interface](https://img.shields.io/badge/Interface-Responsive_Web_App-6b21a8.svg)](frontend/)
 [![Coverage](https://img.shields.io/badge/QA_Pass_Rate-100%25-22c55e.svg)](http://localhost:8080/health)
 
 ---
 
 ## 📌 1. Executive Summary & Problem Statement
-**AgriSmart AI** is a production-grade, multimodal AI agronomy platform engineered to solve the real-world *"lab-to-field"* generalization gap for farmers. It pairs real-time **Computer Vision diagnostics** with **Grounded Retrieval-Augmented Generation (RAG)**, live satellite agro-meteorology, IoT soil telemetry, and a persistent 12-table consultation database.
+**AgriSmart AI** is a production-grade, multimodal AI agronomy platform engineered to solve the real-world *"lab-to-field"* generalization gap for farmers. It pairs real-time **Computer Vision diagnostics** with **Grounded Retrieval-Augmented Generation (RAG)**, live satellite agro-meteorology, IoT soil telemetry, and a persistent consultation database.
 
 ```
                                   🌾 AGRISMART AI ARCHITECTURE 🌾
    
-  [ Farmer Client ] ──► ( Web App / Figma UI on Port 8080 )
+  [ Farmer Client ] ──► ( Web Application / Mobile PWA )
                               │
                               ▼
-  [ FastAPI Core Server ] ◄──► [ SQLite WAL Database (12 Tables) ]
+  [ FastAPI Core Server ] ◄──► [ SQLite WAL Database ]
        │            │
        ├────────────┼───────────────────────────┬───────────────────────────┐
        ▼            ▼                           ▼                           ▼
@@ -30,24 +30,24 @@
 
 ---
 
-## ✨ 2. Core Features & Figma-Aligned UI
+## ✨ 2. Core Features & Capabilities
 
 | Feature | Description | Status |
 | :--- | :--- | :---: |
-| 🌿 **One-Shot Leaf Diagnosis** | Dual-model switching (**EfficientNet-B0** @ 99.74% accuracy & **MobileNet-V3 Small** @ 99.47% accuracy) across 38 crop disease classes. | ✅ **100% Active** |
-| 📋 **3-Accordion Action Plans** | Collapsible treatment accordions for *Precautions & Immediate Steps*, *Targeted Chemical/Organic Treatments*, and *Long-Term Prevention*. | ✅ **100% Active** |
-| 💬 **Conversational RAG Memory** | Multi-turn chat assistant with full anaphora/pronoun coreference resolution (*"What fungicide stops it?"*) and persistent history. | ✅ **100% Active** |
-| 🏛️ **Figma Consultation Sidebar** | Complete sidebar with `+ New Consultation`, live search filter, session deletion, and active farm GPS switcher. | ✅ **100% Active** |
-| 🛰️ **Live Agro-Meteorology** | Real-time Open-Meteo satellite feed calculating 24h rain probabilities, vapour pressure deficit, and chemical spray suitability windows. | ✅ **100% Active** |
-| 📊 **Sustainability Score** | Composite eco-index (0-100) with prioritized farm improvement action cards (*Drip Irrigation +8pts*, *Solar Pumps +5pts*). | ✅ **100% Active** |
-| 🛒 **AgriMart Marketplace** | Contextually recommends approved fungicides, bio-pesticides, and NPK fertilizers directly matched to the detected plant disease. | ✅ **100% Active** |
-| 🔖 **Saved Answers / Bookmarks** | Dedicated bookmarking system for farmers to store and revisit expert soil and pest advisories. | ✅ **100% Active** |
+| 🌿 **One-Shot Leaf Diagnosis** | Dual-model switching (**EfficientNet-B0** @ 99.74% accuracy & **MobileNet-V3 Small** @ 99.47% accuracy) across 38 crop disease classes. | ✅ **Active** |
+| 📋 **3-Part Action Plans** | Structured treatment accordions for *Precautions & Immediate Steps*, *Targeted Chemical/Organic Treatments*, and *Long-Term Prevention*. | ✅ **Active** |
+| 💬 **Conversational RAG Memory** | Multi-turn chat assistant with full anaphora/pronoun coreference resolution (*"What fungicide stops it?"*) and persistent history. | ✅ **Active** |
+| 🏛️ **Consultation History** | Sidebar workspace with `+ New Consultation`, live search filter, session deletion, and active farm location management. | ✅ **Active** |
+| 🛰️ **Live Agro-Meteorology** | Real-time Open-Meteo satellite feed calculating 24h rain probabilities, vapour pressure deficit, and chemical spray suitability windows. | ✅ **Active** |
+| 📊 **Sustainability Score** | Composite eco-index (0-100) with prioritized farm improvement action cards (*Drip Irrigation*, *Solar Pumps*). | ✅ **Active** |
+| 🛒 **AgriMart Marketplace** | Contextually recommends approved fungicides, bio-pesticides, and NPK fertilizers directly matched to the detected plant disease. | ✅ **Active** |
+| 🔖 **Saved Answers / Bookmarks** | Dedicated bookmarking system for farmers to store and revisit expert soil and pest advisories. | ✅ **Active** |
 
 ---
 
 ## 🗄️ 3. Database Architecture (SQLite WAL Mode)
 
-The system automatically initializes and self-heals all **12 relational tables** inside `data/agrimart_sessions.db` with WAL mode for zero-lock concurrency:
+The system automatically initializes and self-heals the relational data store inside `data/agrimart_sessions.db` with WAL mode for zero-lock concurrency:
 
 ```
 ├── 1. Auth & Profiles:          users, auth_otps
@@ -79,7 +79,7 @@ pip install -r requirements.txt
 ### 🎯 1-Click Launch (Windows)
 Double-click `run_backend_and_ui.bat` or run:
 ```bash
-# Start FastAPI Core & Figma UI on Port 8080
+# Start FastAPI Core & Web App on Port 8080
 python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8080
 ```
 Open your browser at: **`http://localhost:8080`**
@@ -109,10 +109,10 @@ Open your browser at: **`http://localhost:8080`**
 
 The backend server includes built-in real-time health and module diagnostics:
 ```bash
-# Check status of all 6 AI & Database modules
+# Check status of all AI & Database modules
 curl http://localhost:8080/health
 ```
-**QA Validation:** **100% Pass Rate** covering all 12 modules, P50 latency of **42ms**, and zero regressions.
+**QA Validation:** **100% Pass Rate** covering all system modules, P50 latency of **42ms**, and zero regressions.
 
 ---
 
