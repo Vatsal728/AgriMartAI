@@ -7,6 +7,7 @@
 [![Database](https://img.shields.io/badge/Database-SQLite_WAL-b45309.svg?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Interface](https://img.shields.io/badge/Interface-Responsive_Web_App-6b21a8.svg)](frontend/)
 [![Coverage](https://img.shields.io/badge/QA_Pass_Rate-100%25-22c55e.svg)](http://localhost:8080/health)
+[![Hugging Face](https://img.shields.io/badge/🤗_HuggingFace-vatsaldesai%2Fagri--flan--t5--expert-FFD21E.svg)](https://huggingface.co/vatsaldesai/agri-flan-t5-expert)
 
 ---
 
@@ -68,8 +69,8 @@ Our system implements a **Dual-Backbone Vision Architecture** and a **Fine-Tuned
 | **ROUGE-L Score** | Longest common subsequence matching | **0.851** |
 | **Domain Groundedness** | Zero-hallucination factual consistency | **100% Metric Compliance** |
 
-> ☁️ **Model Artifacts & Free Cloud Hub:**
-> The model adapter weights (`adapter_model.safetensors`, 14.2 MB) and tokenizers are stored in [`models/agri_flan_t5_expert/`](models/agri_flan_t5_expert/) and can be hosted directly on the **[Hugging Face Model Hub](https://huggingface.co/)** for free live evaluation by evaluators.
+> ☁️ **Live Model on Hugging Face:**
+> The fine-tuned LoRA model and tokenizers are officially published and live on Hugging Face: **[`vatsaldesai/agri-flan-t5-expert`](https://huggingface.co/vatsaldesai/agri-flan-t5-expert)**. Evaluators can load the model directly via PEFT or test prompt inference in the browser.
 
 ---
 
