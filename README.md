@@ -160,13 +160,28 @@ Open your browser at: **`http://localhost:3000`** (Frontend) and **`http://local
 
 ---
 
-## 🧪 7. Automated Test Suite & QA Validation
+## 🧪 7. Evaluation & Benchmark Testing Guide for Judges
 
-Run the end-to-end automated test suite:
-```bash
-pytest tests/test_api_and_db.py -v
-```
-**Results:** **100% Pass Rate** (`5/5` passing suites) and **36/36 Next.js production routes compiled with 0 errors**.
+To facilitate direct interactive evaluation for hackathon judges and mentors, we have curated **30 verified benchmark queries** and **sample leaf test photos** directly in the `tests/` directory:
+
+### 📝 A. 30 Multi-Domain Evaluation Queries ([`tests/sample_evaluation_queries.txt`](tests/sample_evaluation_queries.txt))
+Test the **Chat Assistant** (`http://localhost:3000/chat-assistant`) across 3 natural styles:
+1. **English Pathology Queries:** Specific chemical doses, bio-agents, and spray windows (*"What is the recommended pesticide and dosage for sugarcane red rot?"*).
+2. **Hinglish Conversational Queries:** Natural Indian rural dialect (*"Mere tamatar ke paudho me patte kaale pad rahe hai, konsi dawai spray kare?"*).
+3. **Hindi & Gujarati Native Scripts:** Multi-language entity parsing (*"कपास में गुलाबी सुंडी के नियंत्रण के लिए कौन सी दवा छिड़कें?"*, *"ટામેટાના પાકમાં પાન સુકાઈ રહ્યા છે તો કઈ દવાનો છંટકાવ કરવો?"*).
+
+### 📸 B. Sample Leaf Test Photos ([`tests/phototest/`](tests/phototest/))
+Drag and drop or upload any test image using the **`+`** button in the Chat Assistant or **Scan Leaf** tab:
+| Leaf Image File | Target Disease / Class | Expected Diagnostic Category |
+| :--- | :--- | :--- |
+| `tests/phototest/tomato_early_blight_sample.png` | **Tomato Early Blight** | *Alternaria solani* (Concentric brown rings) |
+| `tests/phototest/tomato_late_blight_sample.png` | **Tomato Late Blight** | *Phytophthora infestans* (Water-soaked dark lesions) |
+| `tests/phototest/corn_leaf_blight_sample.png` | **Corn Leaf Blight** | *Exserohilum turcicum* (Elliptical leaf lesions) |
+| `tests/phototest/wheat_rust_sample.png` | **Wheat Rust** | *Puccinia striiformis* (Yellow/orange pustules) |
+| `tests/phototest/cucumber_powdery_mildew_sample.png` | **Cucumber Powdery Mildew** | *Podosphaera xanthii* (White talcum powder mold) |
+| `tests/phototest/pepper_bacterial_spot_sample.png` | **Pepper Bacterial Spot** | *Xanthomonas campestris* (Small dark spots) |
+| `tests/phototest/soybean_mosaic_sample.png` | **Soybean Mosaic Virus** | Potyvirus complex (Leaf crinkling/mottling) |
+| `tests/phototest/healthy_tomato_sample.png` | **Healthy Leaf** | Zero pathogen symptoms (No chemical needed) |
 
 ---
 

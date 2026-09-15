@@ -1,0 +1,61 @@
+================================================================================
+🌾 AGRISMART AI — BENCHMARK & EVALUATION TEST QUERIES FOR JUDGES 🌾
+================================================================================
+Use these queries to test the Chat Assistant (http://localhost:3000/chat-assistant)
+and the Multimodal Diagnosis Engine.
+
+--------------------------------------------------------------------------------
+📌 PART 1: ENGLISH QUERIES (Crop Pathology & Treatment Protocols)
+--------------------------------------------------------------------------------
+1. What is the recommended pesticide and dosage for sugarcane red rot disease and when should I spray it?
+2. My tomato leaves have concentric brown rings and yellow halos. Is it early blight and what chemical should I apply?
+3. What is the best organic treatment for powdery mildew in cucumber plants?
+4. How do I control whiteflies and aphids in my cotton crop to prevent leaf curl virus?
+5. What is the standard NPK fertilizer schedule for high-yield wheat during the vegetative stage?
+6. When is the safest weather window to spray foliar fungicides on my tomato crop in Ahmedabad?
+7. My potato plants are showing water-soaked black lesions on the stem after heavy rains. How do I stop late blight?
+8. How much Trichoderma viride bio-agent should I mix per litre of water for root drenching?
+9. What are the best preventive fungicide sprays for apple cedar rust disease?
+10. Is drip irrigation better than overhead sprinkler for preventing fungal leaf spots in solanaceous crops?
+
+--------------------------------------------------------------------------------
+📌 PART 2: HINGLISH QUERIES (Farmer Natural Conversational Style)
+--------------------------------------------------------------------------------
+11. Mere tamatar ke paudho me patte kaale pad rahe hai aur sukh rahe hai, konsi dawai spray karni chahiye?
+12. Kapas me pink bollworm ka attack ho gaya hai, kitna dose chemical spray kare aur safe timing kya hai?
+13. Ganne ke khet me red rot disease fail rahi hai, iska permanent ilaaj aur prevention batao.
+14. Bhindi ke patte peele ho rahe hai aur curl ho rahe hai, konsa kitnashak spray kare?
+15. Makka ke patte par lambe dhabbe dikh rahe hai, kya ye leaf blight hai aur kitna mancozeb daale?
+16. Gehun ke paudho par yellow rust ke lakshan dikh rahe hai, emergency control kya hai?
+17. Aloo ki fasal me late blight se bachav ke liye organic remedy kya hai?
+18. Barish aane wali hai agle 24 ghante me, kya mujhe abhi pesticide spray karna chahiye ya hold kare?
+19. Mirch ke paudho me thrips aur mites ke liye best insecticide konsa hai?
+20. Baingan me fruit and shoot borer ke control ke liye pheromone trap aur chemical dose bataiye.
+
+--------------------------------------------------------------------------------
+📌 PART 3: HINDI (हिन्दी) & GUJARATI (ગુજરાતી) MULTILINGUAL QUERIES
+--------------------------------------------------------------------------------
+21. [Hindi] कपास में गुलाबी सुंडी (Pink Bollworm) के नियंत्रण के लिए कौन सी कीटनाशक दवा और कितनी मात्रा में छिड़कें?
+22. [Hindi] टमाटर में अगेती झुलसा (Early Blight) रोग के लक्षण और उसके रासायनिक उपचार की पूरी विधि बताएं।
+23. [Hindi] धान की फसल में तना छेदक (Stem Borer) और शीथ ब्लाइट के लिए अनुशंसित कवकनाशी कौन सा है?
+24. [Hindi] गन्ने की फसल में लाल सड़न रोग से बचाव के लिए मिट्टी का उपचार और बीज शोधन कैसे करें?
+25. [Hindi] क्या 80% बारिश की संभावना होने पर पत्ते पर कीटनाशक का छिड़काव सुरक्षित है?
+26. [Gujarati] ટામેટાના પાકમાં પાન કથ્થાઈ થઈને સુકાઈ રહ્યા છે તો કઈ દવાનો છંટકાવ કરવો અને કેટલું માપ લેવું?
+27. [Gujarati] કપાસમાં ગુલાબી ઈયળના નિયંત્રણ માટે કઈ દવા છાંટવી અને કેટલા દિવસના અંતરે છંટકાવ કરવો?
+28. [Gujarati] શેરડીના પાકમાં લાલ સડો રોગ અટકાવવા માટે જૈવિક અને રાસાયણિક ઉપાયો જણાવો.
+29. [Gujarati] ડાંગરના પાકમાં પાનનો સુકારો અટકાવવા કઈ ફૂગનાશક દવાનો ઉપયોગ કરવો?
+30. [Gujarati] ભીંડાના પાકમાં વાયરસ અને સફેદ માખીથી રક્ષણ માટે કઈ દવાનો ઉપયોગ કરવો?
+
+================================================================================
+📸 TEST LEAF IMAGES FOR JUDGES (Located in: tests/phototest/)
+================================================================================
+You can drag and drop or upload any of these sample images using the '+' button in Chat:
+- tests/phototest/tomato_early_blight_sample.png     -> Tests Tomato Early Blight diagnosis
+- tests/phototest/tomato_late_blight_sample.png      -> Tests Tomato Late Blight diagnosis
+- tests/phototest/corn_leaf_blight_sample.png        -> Tests Corn Leaf Blight diagnosis
+- tests/phototest/wheat_rust_sample.png              -> Tests Wheat Rust diagnosis
+- tests/phototest/cucumber_powdery_mildew_sample.png -> Tests Cucumber Powdery Mildew
+- tests/phototest/pepper_bacterial_spot_sample.png   -> Tests Pepper Bacterial Spot
+- tests/phototest/soybean_mosaic_sample.png          -> Tests Soybean Mosaic Virus
+- tests/phototest/healthy_tomato_sample.png          -> Tests Healthy Leaf Recognition
+================================================================================

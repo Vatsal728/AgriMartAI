@@ -68,12 +68,13 @@ kaggle.json
 data/BOOK_DS/*.pdf
 AgriSmart_AI_Master_Plan.md
 
-# Media rules (Keep frontend public assets tracked, ignore runtime uploads)
+# Media rules (Keep frontend public assets and test photos tracked, ignore runtime uploads)
 *.png
 *.jpg
 *.jpeg
 !frontend/public/**
 !frontend/public/images/**
+!tests/phototest/**
 frontend/public/uploads/
 frontend/public/static/
 
