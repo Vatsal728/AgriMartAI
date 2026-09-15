@@ -8,6 +8,26 @@ env/
 venv/
 .venv/
 ENV/
+.pytest_cache/
+
+# Node & Next.js Frontend
+frontend/node_modules/
+node_modules/
+frontend/.next/
+.next/
+frontend/out/
+out/
+frontend/build/
+build/
+.yarn/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.vercel/
+cloudflared.exe
 
 # Model weights and artifacts
 models/*.pt
@@ -39,19 +59,23 @@ data/*.db-journal
 # Environment & API keys
 .env
 .env.local
+.env*.local
 .kaggle/
 kaggle.json
 
 # Local documentation & diagrams & large books
 *.pdf
+data/BOOK_DS/*.pdf
+AgriSmart_AI_Master_Plan.md
+
+# Media rules (Keep frontend public assets tracked, ignore runtime uploads)
 *.png
 *.jpg
 *.jpeg
-!frontend/*.png
-!frontend/*.jpg
-!frontend/*.svg
-data/BOOK_DS/*.pdf
-AgriSmart_AI_Master_Plan.md
+!frontend/public/**
+!frontend/public/images/**
+frontend/public/uploads/
+frontend/public/static/
 
 # IDE & OS
 .streamlit/

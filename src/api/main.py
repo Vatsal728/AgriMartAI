@@ -106,11 +106,14 @@ if os.path.exists(FRONTEND_DIR):
 
 @app.get("/")
 def serve_ui():
-    """Serves the rich Figma-driven frontend Single Page Application"""
-    index_path = os.path.join(FRONTEND_DIR, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    return {"message": "AgriSmart AI API is running. Frontend static build not found."}
+    """AgriSmart AI Core Service Root"""
+    return {
+        "service": "AgriSmart AI Backend Engine",
+        "status": "operational",
+        "docs_url": "/docs",
+        "frontend_url": "http://localhost:3000",
+        "version": "1.0.0"
+    }
 
 
 @app.get("/health")
