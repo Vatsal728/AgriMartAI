@@ -198,3 +198,4 @@ Drag and drop or upload any test image using the **`+`** button in the Chat Assi
 | **Madhavi Faldu** | Full Stack Developer | [@Madhavi1801](https://github.com/Madhavi1801) |
 | **Krinal Raiyani** | UI/UX Designer | [@krinalraiyani](https://github.com/krinalraiyani) |
 | **Parth Gorasiya** | Frontend Developer | [@ParthGorasiya](https://github.com/ParthGorasiya) |
+| **Dishant B Parakhiya** | ML Engineer | [@DishantParakhiya](https://github.com/DishantParakhiya) |
