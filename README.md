@@ -195,4 +195,6 @@ Drag and drop or upload any test image using the **`+`** button in the Chat Assi
 | Contributor | Role & Domain | GitHub Profile |
 | :--- | :--- | :---: |
 | **Vatsal Desai** | Lead AI Architect & Full-Stack Systems | [@Vatsal728](https://github.com/Vatsal728) |
+| **Madhavi Faldu** | Full Stack Developer | [@Madhavi1801](https://github.com/Madhavi1801) |
+| **Krinal Raiyani** | UI/UX Designer | [@krinalraiyani](https://github.com/krinalraiyani) |
 | **Parth Gorasiya** | Frontend Developer | [@ParthGorasiya](https://github.com/ParthGorasiya) |
