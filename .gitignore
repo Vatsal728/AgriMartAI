@@ -54,6 +54,7 @@ data/BOOK_DS/*.pdf
 AgriSmart_AI_Master_Plan.md
 
 # IDE & OS
+.streamlit/
 .vscode/
 .idea/
 .DS_Store
