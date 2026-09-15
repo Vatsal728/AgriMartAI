@@ -14,7 +14,8 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from peft import PeftModel
 
 BASE_MODEL_NAME = "google/flan-t5-base"
-ADAPTER_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "models", "agri_flan_t5_expert"))
+HF_HUB_REPO = "vatsaldesai/agri-flan-t5-expert"
+LOCAL_ADAPTER_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "models", "agri_flan_t5_expert"))
 
 class LocalAgriLLM:
     _instance = None
@@ -27,10 +28,7 @@ class LocalAgriLLM:
         self._load_model()
 
     def _load_model(self):
-        if not os.path.exists(ADAPTER_PATH):
-            print(f"[AgriLLM Warning] LoRA adapter path not found: {ADAPTER_PATH}. Will fallback to rule-based RAG.")
-            return
-
+        adapter_source = LOCAL_ADAPTER_PATH if os.path.exists(LOCAL_ADAPTER_PATH) else HF_HUB_REPO
         try:
             device_info = f"GPU: {torch.cuda.get_device_name(0)}" if self.device == "cuda" else "CPU"
             print(f"[AgriLLM] Loading tokenizer & base model ({BASE_MODEL_NAME}) on {device_info}...")
@@ -52,8 +50,8 @@ class LocalAgriLLM:
                     device_map="auto" if self.device == "cuda" else None
                 )
             
-            print(f"[AgriLLM] Injecting trained LoRA expert adapter from {ADAPTER_PATH}...")
-            self.model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
+            print(f"[AgriLLM] Injecting trained LoRA expert adapter from {adapter_source}...")
+            self.model = PeftModel.from_pretrained(base_model, adapter_source)
             self.model.eval()
             self.is_loaded = True
             
@@ -63,7 +61,7 @@ class LocalAgriLLM:
             else:
                 print(f"[AgriLLM] Fine-tuned AgriMart LLM loaded on CPU!")
         except Exception as e:
-            print(f"[AgriLLM Error] Failed loading local model: {e}")
+            print(f"[AgriLLM Error] Failed loading model from {adapter_source}: {e}")
             self.is_loaded = False
 
     def generate_advisory(self, instruction: str, context: str = "", max_tokens: int = 120) -> str:
