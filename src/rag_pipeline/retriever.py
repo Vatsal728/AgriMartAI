@@ -205,18 +205,65 @@ class AgronomyRetriever:
                 scored_results.append((score, item))
                 
         scored_results.sort(key=lambda x: x[0], reverse=True)
-        return [item for score, item in scored_results[:n_results]]
+    def extract_conversation_state(self, history: Optional[List[Dict[str, str]]], current_query: str) -> Dict[str, Any]:
+        """
+        Multi-turn state tracker that extracts active crop, disease, chemical mentions, and location across conversation history.
+        """
+        state = {
+            "active_crop": self.detect_crop(current_query),
+            "active_disease": None,
+            "active_chemical": None,
+            "active_location": None,
+            "is_followup": False
+        }
+        
+        # Check if current query is a follow-up ("it", "this", "dosage", "spray today", "organic alternative", "what about", "how much")
+        followup_triggers = ["it", "this", "that", "dosage", "dose", "spray", "sprey", "cure", "cure it", "treat it", "organic", "chemical", "alternative", "how much", "when to", "safe", "prevent"]
+        q_words = set(re.findall(r'[a-zA-Z]+', current_query.lower()))
+        if any(t in q_words for t in followup_triggers) or len(q_words) <= 6:
+            state["is_followup"] = True
+            
+        if history:
+            for msg in reversed(history):
+                txt = msg.get("content", "")
+                if not state["active_crop"]:
+                    crop = self.detect_crop(txt)
+                    if crop:
+                        state["active_crop"] = crop
+                
+                if not state["active_disease"]:
+                    for item in self.textbooks:
+                        d_name = item.get("disease_name", "").lower()
+                        if d_name and d_name in txt.lower():
+                            state["active_disease"] = item.get("disease_name")
+                            if not state["active_crop"]:
+                                state["active_crop"] = item.get("crop")
+                            break
+                            
+        return state
 
-    def answer_query(self, query: str, location_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def answer_query(self, query: str, location_context: Optional[Dict[str, Any]] = None, history: Optional[List[Dict[str, str]]] = None) -> Dict[str, Any]:
         """
-        Comprehensive Agentic Advisor Router:
-        1. Checks for Conversational / Greeting intent
-        2. Checks for Weather / Spray window intent (with dynamic city extraction)
-        3. Checks for specific Disease Treatment Protocol in ICAR/TNAU textbooks
-        4. Checks for Agronomy/Pest/Variety solution in 25,410+ Q&A database
-        5. Synthesizes a polished, professional response.
+        Comprehensive Multi-Turn Agentic Advisor Router:
+        1. Contextual State Tracker & Anaphora Resolver
+        2. Domain / Security Guardrail Gatekeepers
+        3. Conversational / Greeting intent
+        4. Weather / Spray window intent (with dynamic city extraction)
+        5. Specific Disease Treatment Protocol in ICAR/TNAU textbooks
+        6. Agronomy/Pest/Variety solution in 25,410+ Q&A database
+        7. Synthesizes an in-depth, structured scientific field protocol.
         """
+        # Resolve Multi-Turn Context
+        conv_state = self.extract_conversation_state(history, query)
+        resolved_query = query
+        if conv_state["is_followup"] and conv_state["active_crop"]:
+            if conv_state["active_disease"]:
+                resolved_query = f"{query} for {conv_state['active_disease']} in {conv_state['active_crop']}"
+            else:
+                resolved_query = f"{query} in {conv_state['active_crop']}"
+
         q_lower = query.lower()
+        res_lower = resolved_query.lower()
         # 0. Conversational Intent Gatekeeper (Greetings, Identity, Capabilities)
         clean_q = re.sub(r'[^a-zA-Z0-9\s]', '', q_lower).strip()
         
@@ -224,7 +271,8 @@ class AgronomyRetriever:
         non_agri_keywords = [
             "crypto", "cryptocurrency", "bitcoin", "ethereum", "btc", "eth", "stock market", "stocks",
             "share market", "trading", "forex", "profit tomorrow", "10x profit", "buy crypto",
-            "coding", "python code", "java", "javascript", "c++", "react", "html", "css",
+            "coding", "python", "javascript", "java", "c++", "react", "html", "css", "programming",
+            "write a script", "login page", "sql", "api endpoint", "app development",
             "bollywood", "hollywood", "movie", "cinema", "song", "actor", "actress",
             "cricket score", "ipl", "football", "sports", "dating", "relationship",
             "politics", "election", "bjp", "congress", "president", "prime minister"
@@ -325,9 +373,12 @@ class AgronomyRetriever:
             if detected_city:
                 geo = geocode_location(detected_city)
                 weather = fetch_live_agri_weather(geo["lat"], geo["lon"], geo["name"])
-            elif location_context:
+            elif location_context and location_context.get("weather"):
                 weather = location_context.get("weather", {})
-                geo = location_context.get("geo", {})
+                geo = location_context.get("geo", geocode_location("Ahmedabad"))
+            elif location_context and location_context.get("location_name"):
+                geo = geocode_location(location_context["location_name"])
+                weather = fetch_live_agri_weather(geo["lat"], geo["lon"], geo["name"])
             else:
                 geo = geocode_location("Ahmedabad")
                 weather = fetch_live_agri_weather(geo["lat"], geo["lon"], geo["name"])
@@ -407,13 +458,19 @@ class AgronomyRetriever:
             }
 
         # 3. Check for Disease Protocol
-        disease_protocol = self.retrieve_guidance(query)
+        disease_protocol = self.retrieve_guidance(resolved_query)
         
         # 4. Check for Expert Q&A Matches
-        qa_hits = self.search_qa_database(query, n_results=2)
+        qa_hits = self.search_qa_database(resolved_query, n_results=3)
 
         # 5. Synthesize Polished Response
         resp_parts = []
+        
+        # Add contextual thread banner if this is a multi-turn follow-up
+        if conv_state["is_followup"] and conv_state["active_crop"] and (conv_state["active_crop"].lower() not in query.lower()):
+            crop_display = conv_state["active_crop"].capitalize()
+            dis_display = f" — *{conv_state['active_disease']}*" if conv_state["active_disease"] else ""
+            resp_parts.append(f"> 🌿 **Context:** *Continuing advisory for **{crop_display}**{dis_display}*\n")
         
         if disease_protocol:
             d = disease_protocol["details"]
@@ -430,17 +487,17 @@ class AgronomyRetriever:
             else:
                 resp_parts.append(f"### 🍅 ICAR/TNAU Standard Treatment Protocol for {d['disease_name']}")
                 resp_parts.append(f"**Crop:** {d['crop']} | **Pathogen:** *{d.get('pathogen', 'N/A')}*\n")
-                resp_parts.append(f"🔍 **Symptoms:**\n{d.get('symptoms', 'N/A')}\n")
-                resp_parts.append(f"🌿 **Organic / Biological Remedies:**\n{d.get('organic_treatment', 'N/A')}\n")
-                resp_parts.append(f"🧪 **Chemical Controls & Dosages:**\n{d.get('chemical_treatment', 'N/A')}\n")
-                resp_parts.append(f"🛡️ **Field Prevention & Sanitation:**\n{d.get('prevention', 'N/A')}\n")
+                resp_parts.append(f"🔍 **Symptoms & Diagnostic Patterns:**\n{d.get('symptoms', 'N/A')}\n")
+                resp_parts.append(f"🧪 **Targeted Chemical Controls & Dosages:**\n{d.get('chemical_treatment', 'N/A')}\n")
+                resp_parts.append(f"🌿 **Organic & Biological Remedies:**\n{d.get('organic_treatment', 'N/A')}\n")
+                resp_parts.append(f"🛡️ **Field Sanitation & Cultural Practices:**\n{d.get('prevention', 'N/A')}\n")
                 if d.get('weather_action_rule'):
-                    resp_parts.append(f"🌦️ **Weather Alert Rule:**\n{d['weather_action_rule']}\n")
+                    resp_parts.append(f"🌦️ **Weather Action & Spray Safety Rule:**\n{d['weather_action_rule']}\n")
                 
         elif qa_hits:
-            target_crop = self.detect_crop(query)
+            target_crop = conv_state["active_crop"] or self.detect_crop(resolved_query)
             crop_label = f" for {target_crop.capitalize()}" if target_crop else ""
-            resp_parts.append(f"### 🌾 Expert Agronomy Advisory{crop_label}\n")
+            resp_parts.append(f"### 🌾 Verified Agronomy Advisory{crop_label}\n")
             
             for idx, hit in enumerate(qa_hits, 1):
                 ans = hit.get("answer", "").strip()
@@ -452,16 +509,16 @@ class AgronomyRetriever:
                     ans = "Recommended to " + ans[10:]
                 ans = ans[0].upper() + ans[1:] if ans else ans
                 
-                resp_parts.append(f"💡 **Recommended Action #{idx}:**\n{ans}\n")
+                resp_parts.append(f"💡 **Actionable Step #{idx}:**\n{ans}\n")
                 
         else:
             # Fallback for general agricultural queries
             resp_parts.append(f"### 🌾 Agronomic Guidance for **{query}**\n")
             resp_parts.append(
-                "- **Scouting & Sanitation:** Inspect plants regularly (especially under leaves) and remove damaged foliage.\n"
-                "- **Balanced Nutrition:** Follow recommended soil-test based N-P-K fertilization and apply well-decomposed FYM.\n"
-                "- **Biological Protection:** Apply Trichoderma viride or neem seed extract (5ml/L) as a first-line preventive spray.\n"
-                "- **Water Management:** Avoid water stagnation and schedule irrigation during early morning hours."
+                "- **Scouting & Sanitation:** Inspect plants regularly (especially under leaves) and rogue out diseased foliage.\n"
+                "- **Balanced Soil Nutrition:** Follow recommended soil-test based N-P-K fertilization and apply well-decomposed FYM (10 tonnes/ha).\n"
+                "- **Biological Protection:** Apply Trichoderma viride (2.5g/L) or neem seed kernel extract (5%) as a first-line preventive foliar spray.\n"
+                "- **Water Management:** Avoid water stagnation in root zones and schedule drip irrigation during early morning hours."
             )
             
         final_text = "\n".join(resp_parts)
