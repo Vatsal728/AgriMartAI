@@ -38,6 +38,35 @@ CROPS_SYNONYMS = {
     "cucumber": ["cucumber", "kheera", "cucumis", "खीरा", "કાકડી"]
 }
 
+CROP_ICONS = {
+    "cotton": "🌿",
+    "tomato": "🍅",
+    "potato": "🥔",
+    "corn": "🌽",
+    "rice": "🌾",
+    "wheat": "🌾",
+    "sugarcane": "🎋",
+    "okra": "🌱",
+    "apple": "🍎",
+    "grape": "🍇",
+    "pepper": "🌶️",
+    "chilli": "🌶️",
+    "cassava": "🪴",
+    "soybean": "🌱",
+    "mustard": "🌼",
+    "groundnut": "🥜",
+    "onion": "🧅",
+    "garlic": "🧄",
+    "brinjal": "🍆",
+    "cucumber": "🥒",
+    "orange": "🍊",
+    "citrus": "🍊",
+    "strawberry": "🍓",
+    "squash": "🎃",
+    "banana": "🍌",
+    "mango": "🥭"
+}
+
 STOP_WORDS = {
     "what", "how", "the", "for", "and", "using", "with", "are", "recommended", "treat",
     "controls", "dosage", "pesticide", "is", "some", "query", "asking", "about", "crop",
@@ -96,7 +125,7 @@ class AgronomyRetriever:
             pathogen = item.get("pathogen", "").lower()
             symptoms = item.get("symptoms", "").lower()
             
-            # If a specific crop was asked (e.g. Tomato), MUST match that crop!
+            # STRICT CROP GUARD: If a specific crop was asked (e.g. Cotton), NEVER match another crop!
             if target_crop and target_crop != crop:
                 continue
                 
@@ -106,11 +135,21 @@ class AgronomyRetriever:
                 
             # Match disease name tokens
             for word in disease.split():
-                if len(word) > 3 and word in full_query:
+                if len(word) > 3 and (word in full_query or word[:4] in full_query):
                     score += 15
                     
+            # Match symptom tokens
+            for sym_token in ["yellow", "yello", "curling", "curl", "spots", "spot", "blight", "rust", "rot", "wilt", "bacterial", "sucking", "jassid", "aphid", "whitefly", "bollworm", "borer", "thrips", "canker", "mosaic", "mildew", "scorch", "healthy"]:
+                if sym_token in full_query:
+                    if sym_token in disease:
+                        score += 25
+                    if sym_token in symptoms:
+                        score += 15
+                    if sym_token in pathogen:
+                        score += 15
+                    
             # Specific high-value disease matchers
-            if "early blight" in full_query and ("early blight" in pathogen or "early blight" in disease or "blight" in disease or "brown spots" in disease):
+            if ("early blight" in full_query or "blight" in full_query) and ("blight" in disease or "blight" in pathogen):
                 score += 30
             elif "late blight" in full_query and ("late blight" in pathogen or "late blight" in disease):
                 score += 30
@@ -124,6 +163,8 @@ class AgronomyRetriever:
                 score += 25
             elif "healthy" in full_query and "healthy" in disease:
                 score += 25
+            elif any(s in full_query for s in ["yellow", "yello", "sucking", "pest", "jassid", "whitefly", "aphid"]) and any(s in disease for s in ["yellow", "sucking", "pest"]):
+                score += 35
                 
             if score > best_score:
                 best_score = score
@@ -165,7 +206,8 @@ class AgronomyRetriever:
             "caterpillar", "caterpillars", "borer", "borers", "mite", "mites", "hopper", "hoppers",
             "termite", "termites", "blight", "rust", "rot", "mildew", "mosaic", "curl", "wilt",
             "spot", "spots", "trichoderma", "viride", "urea", "npk", "dap", "mop", "zinc",
-            "root rot", "late blight", "early blight", "leaf curl", "fruit borer", "stem borer"
+            "root rot", "late blight", "early blight", "leaf curl", "fruit borer", "stem borer",
+            "yellow", "yellowing", "jassid", "jassids", "spray", "sprey", "chemical", "dosage"
         }
         
         # Tokenize query removing common stop words
@@ -205,10 +247,11 @@ class AgronomyRetriever:
                         
             # Require minimum relevance threshold:
             # Must have either a key pest/nutrient match or multiple query tokens matched
-            if score >= 35:
+            if score >= 25 or (target_crop and score >= 15):
                 scored_results.append((score, item))
                 
         scored_results.sort(key=lambda x: x[0], reverse=True)
+        return [item for _, item in scored_results[:n_results]]
     def extract_conversation_state(self, history: Optional[List[Dict[str, str]]], current_query: str) -> Dict[str, Any]:
         """
         Multi-turn state tracker that extracts active crop, disease, chemical mentions, and location across conversation history.
@@ -479,19 +522,21 @@ class AgronomyRetriever:
         
         if disease_protocol:
             d = disease_protocol["details"]
+            crop_name = d.get("crop", "Crop")
+            crop_icon = CROP_ICONS.get(crop_name.lower(), "🌿")
             is_healthy_crop = "healthy" in d["disease_name"].lower()
             
             if is_healthy_crop:
-                resp_parts.append(f"### 🌽 ICAR Standard Health & Yield Optimization Protocol for {d['crop']}")
-                resp_parts.append(f"**Crop:** {d['crop']} | **Status:** ✅ *Healthy & Vigorously Growing*\n")
+                resp_parts.append(f"### {crop_icon} ICAR Standard Health & Yield Optimization Protocol for {crop_name}")
+                resp_parts.append(f"**Crop:** {crop_name} | **Status:** ✅ *Healthy & Vigorously Growing*\n")
                 resp_parts.append(f"🌿 **Soil & Organic Nutrition:**\n{d.get('organic_treatment', 'N/A')}\n")
                 resp_parts.append(f"🧪 **Recommended Fertilizer Dosage:**\n{d.get('chemical_treatment', 'N/A')}\n")
                 resp_parts.append(f"🛡️ **Field Prevention & Scouting:**\n{d.get('prevention', 'N/A')}\n")
                 if d.get('weather_action_rule'):
                     resp_parts.append(f"🌦️ **Agrometeorology Rule:**\n{d['weather_action_rule']}\n")
             else:
-                resp_parts.append(f"### 🍅 ICAR/TNAU Standard Treatment Protocol for {d['disease_name']}")
-                resp_parts.append(f"**Crop:** {d['crop']} | **Pathogen:** *{d.get('pathogen', 'N/A')}*\n")
+                resp_parts.append(f"### {crop_icon} ICAR/TNAU Standard Treatment Protocol for {d['disease_name']}")
+                resp_parts.append(f"**Crop:** {crop_name} | **Pathogen:** *{d.get('pathogen', 'N/A')}*\n")
                 resp_parts.append(f"🔍 **Symptoms & Diagnostic Patterns:**\n{d.get('symptoms', 'N/A')}\n")
                 resp_parts.append(f"🧪 **Targeted Chemical Controls & Dosages:**\n{d.get('chemical_treatment', 'N/A')}\n")
                 resp_parts.append(f"🌿 **Organic & Biological Remedies:**\n{d.get('organic_treatment', 'N/A')}\n")
