@@ -192,6 +192,7 @@ Drag and drop or upload any test image using the **`+`** button in the Chat Assi
 
 
 ### 🌟 Core Contributors
+
 | Contributor | Role & Domain | GitHub Profile |
 | :--- | :--- | :---: |
 | **Vatsal Desai** | Lead AI Architect & Full-Stack Systems | [@Vatsal728](https://github.com/Vatsal728) |
