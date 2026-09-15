@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriSmart AI — Autonomous Crop Health & Agronomy Advisor</title>
+    <title>AgriSmart AI — Autonomous Crop Health & Agronomy Assistant</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,90 +11,95 @@
 </head>
 <body>
     <div class="app-layout">
-        <!-- Sidebar: Weather & Farm Telemetry -->
+        <!-- Sidebar: Session History & Field Telemetry -->
         <aside class="sidebar">
             <div class="brand">
                 <div class="brand-icon">🌾</div>
                 <div>
                     <h1 class="brand-title">AgriSmart AI</h1>
-                    <p class="brand-sub">Autonomous Agronomy Core</p>
+                    <p class="brand-sub">Senior Agronomist Assistant</p>
                 </div>
             </div>
 
-            <div class="card location-card">
-                <div class="card-title">📍 Farm Location</div>
-                <div class="input-group">
-                    <input type="text" id="locationInput" value="Ahmedabad, Gujarat" placeholder="Enter District / City">
-                    <button id="btnGps" title="Detect GPS location">📍 GPS</button>
+            <!-- New Consultation Button -->
+            <button id="btnNewSession" class="btn-new-session">
+                <span style="font-size:1.1rem;">➕</span>
+                <span>New Farm Consultation</span>
+            </button>
+
+            <!-- Search Sessions -->
+            <div class="session-search-box">
+                <input type="text" id="sessionSearchInput" placeholder="🔍 Search past consultations...">
+            </div>
+
+            <!-- Scrollable Session History -->
+            <div class="sidebar-section-title">PAST CONSULTATIONS</div>
+            <div class="sessions-list" id="sessionsList">
+                <div class="sessions-loading">Loading saved consultations...</div>
+            </div>
+
+            <!-- Bottom Farm & Weather Panel -->
+            <div class="sidebar-footer-card">
+                <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>📍 Farm District</span>
+                    <button id="btnGps" class="btn-gps-mini" title="Detect GPS location">📍 GPS</button>
                 </div>
-            </div>
-
-            <div class="card weather-card" id="weatherWidget">
-                <div class="card-title">🛰️ Live Satellite Telemetry</div>
-                <div class="weather-metrics">
-                    <div class="metric-box">
-                        <span class="metric-label">🌡️ Temperature</span>
-                        <span class="metric-val" id="metricTemp">-- °C</span>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">💧 Humidity</span>
-                        <span class="metric-val" id="metricHum">-- %</span>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">🌧️ Rain Risk</span>
-                        <span class="metric-val" id="metricRain">-- %</span>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">🌱 Soil Moisture</span>
-                        <span class="metric-val" id="metricSoil">-- %</span>
-                    </div>
+                <input type="text" id="locationInput" value="Ahmedabad, Gujarat" placeholder="District, State">
+                
+                <div class="mini-weather-bar">
+                    <span id="miniTemp">🌡️ --°C</span>
+                    <span id="miniRain">🌧️ --% Rain</span>
+                    <span id="miniSoil">🌱 --% Soil</span>
                 </div>
-                <div class="weather-footer" id="weatherCondition">Conditions: Fetching live satellite feed...</div>
-            </div>
-
-            <div class="card model-card">
-                <div class="card-title">🧠 AI Vision Engine</div>
-                <select id="modelSelect">
-                    <option value="efficientnet">⚡ EfficientNet-B0 (Cloud Precision: 99.74%)</option>
-                    <option value="mobilenet">📱 MobileNet-V3 (Edge Ultra-Fast: 99.47%)</option>
-                </select>
-            </div>
-
-            <div class="sidebar-footer">
+                
                 <div class="status-indicator">
                     <span class="pulse-dot"></span>
-                    <span id="apiStatusText">FastAPI Server: Connected</span>
+                    <span id="apiStatusText">Core API: Connected</span>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Chat & Advisory Area -->
+        <!-- Main Chat & Advisory Workspace -->
         <main class="chat-container">
             <header class="chat-header">
-                <div>
-                    <h2 class="header-title">Crop Protection & Agronomy Workspace</h2>
-                    <p class="header-desc">Zero-Hallucination ICAR/TNAU Plant Pathology & Live Weather Synthesis</p>
+                <div class="header-left">
+                    <h2 class="header-title" id="activeSessionTitle">Farm Health & Pathology Consultation</h2>
+                    <div class="header-meta">
+                        <span class="badge" id="activeCropBadge">🌾 General Crop Care</span>
+                        <span class="meta-sep">•</span>
+                        <span id="headerLocationText">📍 Connected: Ahmedabad, Gujarat</span>
+                    </div>
                 </div>
-                <button id="btnClearChat" class="btn-secondary">🗑️ Clear Chat</button>
+
+                <div class="header-controls">
+                    <div class="model-picker">
+                        <label for="modelSelect">Engine:</label>
+                        <select id="modelSelect">
+                            <option value="efficientnet">🥇 EfficientNet-B0 (99.74%)</option>
+                            <option value="mobilenet">📱 MobileNet-V3 (99.47%)</option>
+                        </select>
+                    </div>
+                    <button id="btnDeleteCurrentSession" class="btn-icon-danger" title="Delete current session">🗑️</button>
+                </div>
             </header>
 
-            <!-- Quick Action Chips -->
+            <!-- Quick Suggestion Chips -->
             <div class="quick-chips">
-                <button class="chip" data-query="Tomato Early blight symptoms and chemical control">🍅 Tomato Early Blight</button>
+                <button class="chip" data-query="Tomato Early blight symptoms and exact chemical dosage">🍅 Tomato Early Blight</button>
                 <button class="chip" data-query="How to control fall armyworm in corn?">🌽 Corn Fall Armyworm</button>
-                <button class="chip" data-query="Should I spray chemical medicine today in Ahmedabad?">🌦️ Spray Window Today</button>
-                <button class="chip" data-query="How to make all tomatoes and corns healthy?">🌾 High-Yield Crop Care</button>
-                <button class="chip" data-query="Does my plant need fungicide or is organic compost enough?">🌿 Compost vs Fungicide</button>
+                <button class="chip" data-query="What is the recommended pesticide dosage for aphids in sugarcane?">🎋 Sugarcane Aphids</button>
+                <button class="chip" data-query="Should I spray foliar chemical medicine today with current wind speed?">🌦️ Spray Window Today</button>
+                <button class="chip" data-query="What is the NPK fertilizer schedule for Wheat in loamy soil?">🌾 Wheat NPK Schedule</button>
             </div>
 
-            <!-- Messages Stream -->
+            <!-- Multi-Turn Messages Stream -->
             <div class="messages-stream" id="messagesStream">
                 <div class="message assistant-msg welcome-msg">
                     <div class="msg-avatar">🌱</div>
                     <div class="msg-bubble">
                         <b>Namaste! I am your AI Agronomist Assistant.</b><br><br>
-                        You can <b>upload or snap a photo of an infected leaf</b> for instant diagnosis, or <b>ask any agronomy question</b> (chemical dosages, organic bio-remedies, fertilizer schedules, live weather spray windows).<br><br>
-                        <i>Upload a photo below or click any quick prompt to begin!</i>
+                        I can diagnose crop leaf infections, calculate exact chemical & organic dosages, verify live satellite spray windows, and remember all previous turns in your conversation.<br><br>
+                        <i>Attach a leaf image using the 📷 button or ask any farming question below!</i>
                     </div>
                 </div>
             </div>
@@ -114,7 +119,7 @@
                     📷
                     <input type="file" id="imageUploadInput" accept="image/*" style="display:none;">
                 </label>
-                <input type="text" id="chatTextInput" placeholder="Ask a farming question or upload a leaf photo..." autocomplete="off">
+                <input type="text" id="chatTextInput" placeholder="Ask a crop question, chemical dosage, or follow-up..." autocomplete="off">
                 <button type="submit" id="btnSend" class="send-btn">
                     <span>Send</span> ➔
                 </button>
