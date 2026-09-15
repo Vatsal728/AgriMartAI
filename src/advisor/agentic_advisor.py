@@ -18,15 +18,21 @@ if ROOT_DIR not in sys.path:
 from src.rag_pipeline.retriever import AgronomyRetriever
 from src.advisor.weather_service import WeatherService
 from src.advisor.sensor_stream import IoTSensorSimulator
+from src.advisor.agri_llm_engine import LocalAgriLLM
 
 class AgenticAdvisor:
     def __init__(self):
         self.retriever = AgronomyRetriever()
         self.weather_service = WeatherService()
         self.sensor_simulator = IoTSensorSimulator()
+        self.llm = None
+        try:
+            self.llm = LocalAgriLLM()
+        except Exception as e:
+            print(f"[Advisor Warning] Local LLM init deferred: {e}")
 
 
-    def formulate_advisory(self, disease_name: str, confidence: float, user_location: str = None, custom_weather: dict = None, custom_sensors: dict = None) -> dict:
+    def formulate_advisory(self, disease_name: str, confidence: float, user_location: str = None, custom_weather: dict = None, custom_sensors: dict = None, user_prompt: str = None) -> dict:
         """
         Executes the autonomous reasoning loop and produces a comprehensive farmer advisory report.
         """
@@ -82,16 +88,30 @@ class AgenticAdvisor:
                 f"{weather_note} Execute the targeted chemical or biological treatment plan outlined below."
             )
 
-        # Multilingual conversational summary (GenAI format - Bonus Module E)
-        summary_en = (
-            f"Diagnosis: {disease_name} (Confidence: {confidence*100:.1f}%). "
-            f"{'Your crop is in excellent health! ' if is_healthy else 'Immediate action recommended. '} "
-            f"{irrigation_advice} {spray_advice}"
-        )
-
-
         rag_src = rag_info.get("source", "ICAR/TNAU Standard Agronomy Database") if rag_info else "ICAR/TNAU Standard Agronomy Database"
         rag_ctx = rag_info.get("retrieved_context", f"Maintain standard field sanitation and balanced crop nutrition for {disease_name}.") if rag_info else f"Maintain standard field sanitation and balanced crop nutrition for {disease_name}."
+
+        # Direct LLM answer to user prompt if provided
+        direct_llm_answer = ""
+        if user_prompt and self.llm and getattr(self.llm, "is_loaded", False):
+            try:
+                direct_llm_answer = self.llm.generate_advisory(
+                    user_prompt, 
+                    context=f"Diagnosed Disease: {disease_name}. {rag_ctx}"
+                )
+            except Exception as e:
+                print(f"[Advisor LLM generate warning]: {e}")
+
+        # Multilingual conversational summary (GenAI format - Bonus Module E)
+        summary_parts = []
+        if direct_llm_answer:
+            summary_parts.append(f"💬 **Agronomist Answer:**\n{direct_llm_answer}")
+        
+        summary_parts.append(f"🔍 **Clinical Assessment:** {field_assessment}")
+        summary_parts.append(f"💧 **Water & Irrigation:** {irrigation_advice}")
+        summary_parts.append(f"🌦️ **Spray Timing:** {spray_advice}")
+        
+        summary_en = "\n\n".join(summary_parts)
 
         return {
             "disease_detected": disease_name,

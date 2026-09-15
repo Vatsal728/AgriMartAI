@@ -15,27 +15,27 @@ QA_JSON = os.path.join(os.path.dirname(__file__), "..", "..", "data", "agricultu
 PERSIST_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "vector_store")
 
 CROPS_SYNONYMS = {
-    "tomato": ["tomato", "tamatar", "lycopersicon"],
-    "sugarcane": ["sugarcane", "cane", "ganna", "saccharum"],
-    "okra": ["okra", "bhendi", "bhindi", "ladyfinger", "abelmoschus"],
-    "corn": ["corn", "maize", "makka", "zea mays"],
-    "potato": ["potato", "aloo", "solanum tuberosum"],
-    "apple": ["apple", "seb", "malus"],
-    "rice": ["rice", "paddy", "dhan", "boro", "oryza"],
-    "wheat": ["wheat", "gehun", "triticum"],
-    "cotton": ["cotton", "kapas", "gossypium"],
+    "tomato": ["tomato", "tamatar", "lycopersicon", "टमाटर", "ટામેટા", "ટામેટાં", "ટામેટાના"],
+    "sugarcane": ["sugarcane", "cane", "ganna", "saccharum", "गन्ना", "ईख", "શેરડી", "શેરડીના"],
+    "okra": ["okra", "bhendi", "bhindi", "ladyfinger", "abelmoschus", "भिंडी", "ભીંડા", "ભીંડો"],
+    "corn": ["corn", "maize", "makka", "zea mays", "मक्का", "મકાઈ"],
+    "potato": ["potato", "aloo", "solanum tuberosum", "आलू", "બટાટા", "બટાકા"],
+    "apple": ["apple", "seb", "malus", "सेब", "સફરજન"],
+    "rice": ["rice", "paddy", "dhan", "boro", "oryza", "धान", "चावल", "ડાંગર", "ચોખા"],
+    "wheat": ["wheat", "gehun", "triticum", "गेहूं", "ઘઉં"],
+    "cotton": ["cotton", "kapas", "gossypium", "bollworm", "कपास", "કપાસ", "ગુલાબી સુંડી", "गुलाबी सुंडी"],
     "cassava": ["cassava", "tapioca", "yuca", "manihot"],
-    "grape": ["grape", "angoor", "vitis"],
-    "pepper": ["pepper", "chilli", "mirch", "capsicum"],
-    "mango": ["mango", "aam", "mangifera"],
-    "banana": ["banana", "kela", "musa"],
-    "mustard": ["mustard", "sarson", "brassica"],
-    "soybean": ["soybean", "soya", "glycine max"],
-    "groundnut": ["groundnut", "peanut", "mungfali", "arachis"],
-    "onion": ["onion", "pyaz", "allium cepa"],
-    "garlic": ["garlic", "lahsun", "allium sativum"],
-    "brinjal": ["brinjal", "eggplant", "baingan", "solanum melongena"],
-    "cucumber": ["cucumber", "kheera", "cucumis"]
+    "grape": ["grape", "angoor", "vitis", "अंगूर", "દ્રાક્ષ"],
+    "pepper": ["pepper", "chilli", "mirch", "capsicum", "मिर्च", "મરચાં", "મરચું"],
+    "mango": ["mango", "aam", "mangifera", "आम", "કેરી"],
+    "banana": ["banana", "kela", "musa", "केला", "કેળા"],
+    "mustard": ["mustard", "sarson", "brassica", "सरसों", "રાયડો", "સરસવ"],
+    "soybean": ["soybean", "soya", "glycine max", "सोयाबीन"],
+    "groundnut": ["groundnut", "peanut", "mungfali", "arachis", "मूंगफली", "મગફળી"],
+    "onion": ["onion", "pyaz", "allium cepa", "प्याज", "ડુંગળી", "કાંદા"],
+    "garlic": ["garlic", "lahsun", "allium sativum", "लहसुन", "લસણ"],
+    "brinjal": ["brinjal", "eggplant", "baingan", "solanum melongena", "बैंगन", "રીંગણ", "રીંગણા"],
+    "cucumber": ["cucumber", "kheera", "cucumis", "खीरा", "કાકડી"]
 }
 
 STOP_WORDS = {
@@ -71,8 +71,12 @@ class AgronomyRetriever:
         text_lower = text.lower()
         for crop_key, syns in CROPS_SYNONYMS.items():
             for s in syns:
-                if re.search(r'\b' + re.escape(s) + r'\b', text_lower):
-                    return crop_key
+                if any(ord(c) > 127 for c in s):
+                    if s in text_lower:
+                        return crop_key
+                else:
+                    if re.search(r'\b' + re.escape(s) + r'\b', text_lower):
+                        return crop_key
         return None
 
     def retrieve_guidance(self, disease_or_query: str, query_context: str = "") -> Optional[Dict[str, Any]]:
@@ -302,19 +306,20 @@ class AgronomyRetriever:
 
         greetings_words = {"hi", "hello", "hey", "hola", "namaste", "pranam", "good morning", "good afternoon", "good evening"}
         pleasantries_words = {"how are you", "how r u", "how do you do", "whats up", "what is up"}
-        identity_words = {"who are you", "what are you", "what can you do", "help", "menu", "capabilities", "what is agrismart", "features"}
+        identity_phrases = ["who are you", "what are you", "what can you do", "what is agrismart", "system menu", "capabilities"]
         thanks_words = {"thanks", "thank you", "dhanyawad", "shukriya", "thx"}
 
-        is_greeting = any(g in clean_q.split() for g in ["hi", "hello", "hey", "namaste"]) or clean_q in greetings_words or clean_q in pleasantries_words
-        is_identity = any(id_phrase in clean_q for id_phrase in identity_words)
+        # Only trigger greeting if the query is purely a standalone greeting/pleasantry, not a full agricultural query
+        word_count = len(clean_q.split())
+        is_pure_greeting = clean_q in greetings_words or clean_q in pleasantries_words or (word_count <= 2 and any(g in clean_q.split() for g in ["hi", "hello", "hey", "namaste"]))
+        is_identity = (word_count <= 4 and any(id_phrase in clean_q for id_phrase in identity_phrases))
 
-        if is_greeting or is_identity:
+        if is_pure_greeting or is_identity:
             return {
                 "response": (
                     "👋 **Hello! Welcome to AgriSmart AI — Autonomous Crop Health Advisor.**\n\n"
                     "I am your Senior AI Agronomist trained on verified agricultural and plant pathology standards.\n\n"
                     "**Here is how I can assist your farm:**\n"
-
                     "- 📸 **Crop Leaf Diagnosis:** Upload an image using the `+` button to diagnose diseases instantly.\n"
                     "- 🐛 **Pest & Disease Control:** Ask for chemical dosages, organic remedies, or spray schedules (e.g., *'Sugarcane aphids control'*).\n"
                     "- 🌾 **Crop Varieties & Cultivation:** Ask for high-yield seeds and NPK fertilizer doses (e.g., *'High yield Okra varieties'*).\n"

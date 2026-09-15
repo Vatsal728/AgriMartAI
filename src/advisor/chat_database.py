@@ -234,10 +234,10 @@ def seed_default_data():
                 """, (
                     "usr_david_miller",
                     "+919876543210",
-                    "farmer@agri.com",
+                    "desaivatshal72839@gmail.com",
                     hash_password("farm1234"),
-                    "David Miller",
-                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop",
+                    "Desai Vatshal",
+                    "/images/profile-avatar.png",
                     "en",
                     "Premium Plan"
                 ))
@@ -378,6 +378,13 @@ class UserDB:
     def get_user(user_id: str) -> Optional[Dict[str, Any]]:
         conn = get_db_connection()
         row = conn.execute("SELECT id, phone_number, email, full_name, avatar_url, preferred_language, subscription_plan, is_verified, created_at FROM users WHERE id = ?", (user_id,)).fetchone()
+        conn.close()
+        return dict(row) if row else None
+
+    @staticmethod
+    def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+        conn = get_db_connection()
+        row = conn.execute("SELECT id, phone_number, email, full_name, avatar_url, preferred_language, subscription_plan, is_verified, created_at FROM users WHERE email = ?", (email,)).fetchone()
         conn.close()
         return dict(row) if row else None
 

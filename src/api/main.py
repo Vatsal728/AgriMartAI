@@ -12,10 +12,17 @@ Full Figma Architecture Implementation:
 """
 
 import os
+import sys
 import shutil
 import tempfile
 from typing import Optional, List, Dict, Any
 from contextlib import asynccontextmanager
+
+# Automatically ensure project root is in sys.path regardless of where main.py is run from
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -163,9 +170,15 @@ def verify_otp(req: VerifyOtpRequest):
     return user
 
 @app.get("/api/auth/me", response_model=UserResponse)
-def get_current_user(user_id: str = "usr_david_miller"):
-    """Fetches currently active profile (defaults to David Miller from Figma UI)"""
-    user = UserDB.get_user(user_id)
+def get_current_user(user_id: Optional[str] = None, email: Optional[str] = None):
+    """Fetches currently active profile by email or user_id (defaults to active farmer profile)"""
+    user = None
+    if email:
+        user = UserDB.get_user_by_email(email)
+    if not user and user_id:
+        user = UserDB.get_user(user_id)
+    if not user:
+        user = UserDB.get_user("usr_desai_vatshal") or UserDB.get_user("usr_david_miller")
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
     return user
@@ -411,7 +424,8 @@ def one_shot_diagnose(
         advisory_res = advisor.formulate_advisory(
             disease_name=pred_res["disease"],
             confidence=pred_res["confidence"],
-            user_location=location
+            user_location=location,
+            user_prompt=user_prompt
         )
         
         # Format 3 Figma Accordion Sections
@@ -420,6 +434,13 @@ def one_shot_diagnose(
         prevention = "• Implement 3-year crop rotation with non-solanaceous crops (e.g. Maize, Pulses).\n• Use certified disease-resistant certified seeds / hybrid cultivars.\n• Sterilize pruning shears with 70% isopropyl alcohol between rows."
         weather_risk = "High humidity (>80%) forecast for next 3 days may accelerate fungal spread. Ensure proper canopy drainage."
 
+        # Save uploaded image to frontend public uploads directory so Next.js and API can both display it
+        upload_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "uploads"))
+        os.makedirs(upload_dir, exist_ok=True)
+        safe_filename = f"{uuid.uuid4().hex[:8]}_{file.filename}"
+        saved_image_path = os.path.join(upload_dir, safe_filename)
+        shutil.copyfile(tmp_path, saved_image_path)
+
         # Save permanent Diagnosis & Accordion Plan to DB
         saved_diag = DiagnosisDB.save_diagnosis(
             user_id=user_id,
@@ -427,7 +448,7 @@ def one_shot_diagnose(
             disease_name=pred_res["disease"],
             scientific_name=f"{pred_res['crop']} fungal complex",
             confidence=pred_res["confidence"],
-            image_url=f"/static/uploads/{file.filename}",
+            image_url=f"/uploads/{safe_filename}",
             precautions=precautions,
             treatment=treatment,
             prevention=prevention,
@@ -448,7 +469,7 @@ def one_shot_diagnose(
 
         # Persist User turn & Assistant Diagnosis turn
         user_msg_txt = user_prompt or f"Diagnose this {pred_res['crop']} leaf image."
-        ChatDatabase.add_message(active_ses_id, "user", user_msg_txt, image_path=file.filename)
+        ChatDatabase.add_message(active_ses_id, "user", user_msg_txt, image_path=f"/uploads/{safe_filename}")
         
         diag_summary = f"Diagnosed {pred_res['disease']} (Confidence: {pred_res['confidence']*100:.1f}%). {advisory_res.get('conversational_summary', '')}"
         ChatDatabase.add_message(
@@ -525,6 +546,7 @@ def chat_with_agronomist(req: ChatRequest):
 # ==============================================================================
 
 @app.get("/telemetry")
+@app.get("/api/soil-telemetry")
 def get_sensor_telemetry(soil_type: str = "Loamy", crop: str = "General"):
     """
     Real-time IoT soil and environmental telemetry.
@@ -533,6 +555,7 @@ def get_sensor_telemetry(soil_type: str = "Loamy", crop: str = "General"):
 
 
 @app.get("/weather")
+@app.get("/api/weather")
 def get_weather(location: str = "Ahmedabad, Gujarat"):
     """
     Live Satellite weather & spray window intelligence.
