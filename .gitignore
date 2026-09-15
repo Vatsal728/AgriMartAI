@@ -51,7 +51,9 @@ archive.zip
 *.tar.gz
 *.7z
 
-# SQLite Temporary Database Locks & Journals
+# SQLite Database & Temporary Locks & Journals
+*.db
+data/*.db
 data/*.db-wal
 data/*.db-shm
 data/*.db-journal
