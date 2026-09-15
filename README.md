@@ -1,6 +1,7 @@
-  code README.md# 🌾 AgriSmart AI: Autonomous Crop Health & Precision Agronomy Platform
+# 🌾 AgriSmart AI: Autonomous Crop Health & Precision Agronomy Platform
 **Smart India Hackathon (SIH 2026) | L. J. Institute of Engineering and Technology**
 
+[![Live Demo Video](https://img.shields.io/badge/🎬_YouTube-Live_Video_Demo-red.svg?logo=youtube&logoColor=white)](https://youtu.be/Khd-8exciPM)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-15803d.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Next.js 16](https://img.shields.io/badge/Frontend-Next.js_16_React_19-black.svg?logo=next.js&logoColor=white)](frontend/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-0f766e.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -8,6 +9,17 @@
 [![Database](https://img.shields.io/badge/Database-SQLite_WAL-b45309.svg?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Coverage](https://img.shields.io/badge/QA_Pass_Rate-100%25-22c55e.svg)](http://localhost:8080/health)
 [![Hugging Face](https://img.shields.io/badge/🤗_HuggingFace-vatsaldesai%2Fagri--flan--t5--expert-FFD21E.svg)](https://huggingface.co/vatsaldesai/agri-flan-t5-expert)
+
+---
+
+## 🎬 Video Demonstration for Hackathon Judges
+
+> 🎥 **Full Platform Walkthrough & Live Demonstration Video:**  
+> **Watch on YouTube:** [https://youtu.be/Khd-8exciPM](https://youtu.be/Khd-8exciPM)
+>
+> [![AgriSmart AI Video Walkthrough](https://img.youtube.com/vi/Khd-8exciPM/maxresdefault.jpg)](https://youtu.be/Khd-8exciPM)
+>
+> *This video demonstrates the complete end-to-end multimodal workflow: instantaneous sub-50ms leaf scan diagnosis, contextual multi-turn chat with zero-hallucination topic isolation, live satellite agrometeorology, IoT sensor telemetry stream, and sustainability action planning.*
 
 ---
 
