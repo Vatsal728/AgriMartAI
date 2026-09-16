@@ -11,9 +11,18 @@
 [![Database](https://img.shields.io/badge/Database-SQLite_WAL-b45309.svg?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Hugging Face](https://img.shields.io/badge/🤗_HuggingFace-vatsaldesai%2Fagri--flan--t5--expert-FFD21E.svg)](https://huggingface.co/vatsaldesai/agri-flan-t5-expert)
 
+## 🌐 Live Deployed Platform & Video Demonstration
+
+| Deployment Service | Live URL | Description |
+| :--- | :--- | :--- |
+| 🚀 **Web App (Vercel)** | **[https://agri-mart-ai.vercel.app](https://agri-mart-ai.vercel.app)** | Complete 36-route Next.js 16 agronomy frontend |
+| ⚡ **Backend API (Render)** | **[https://agrismart-api-4rmk.onrender.com](https://agrismart-api-4rmk.onrender.com/health)** | FastAPI core server with AI vision & RAG engine |
+| 📚 **Interactive Swagger API** | **[https://agrismart-api-4rmk.onrender.com/docs](https://agrismart-api-4rmk.onrender.com/docs)** | Live interactive REST API documentation |
+| 🎬 **Full Video Walkthrough** | **[https://youtu.be/Khd-8exciPM](https://youtu.be/Khd-8exciPM)** | Comprehensive 10-minute end-to-end platform demo |
+
 ---
 
-## 🎬 Video Demonstration for Hackathon Judges
+### 🎬 Platform Video Walkthrough
 
 > 🎥 **Full Platform Walkthrough & Live Demonstration Video:**  
 > **Watch on YouTube:** [https://youtu.be/Khd-8exciPM](https://youtu.be/Khd-8exciPM)
@@ -183,12 +192,12 @@ The platform supports flexible login with **10-digit Mobile Numbers** (with/with
 
 ---
 
-## 🧪 7. Evaluation & Benchmark Testing Guide for Judges
+## 🧪 7. Evaluation & Benchmark Testing Guide
 
-To facilitate direct interactive evaluation for hackathon judges and mentors, we have curated **30 verified benchmark queries** and **sample leaf test photos** directly in the `tests/` directory:
+To facilitate direct interactive testing and validation, we have curated **30 verified benchmark queries** and **sample leaf test photos** directly in the `tests/` directory:
 
 ### 📝 A. 30 Multi-Domain Evaluation Queries ([`tests/sample_evaluation_queries.txt`](tests/sample_evaluation_queries.txt))
-Test the **Chat Assistant** (`http://localhost:3000/chat-assistant`) across 3 natural styles:
+Test the **Chat Assistant** (Live: **[`agri-mart-ai.vercel.app/chat-assistant`](https://agri-mart-ai.vercel.app/chat-assistant)** or Local: `http://localhost:3000/chat-assistant`) across 3 natural styles:
 1. **English Pathology Queries:** Specific chemical doses, bio-agents, and spray windows (*"What is the recommended pesticide and dosage for sugarcane red rot?"*).
 2. **Hinglish Conversational Queries:** Natural Indian rural dialect (*"Mere tamatar ke paudho me patte kaale pad rahe hai, konsi dawai spray kare?"*).
 3. **Hindi & Gujarati Native Scripts:** Multi-language entity parsing (*"कपास में गुलाबी सुंडी के नियंत्रण के लिए कौन सी दवा छिड़कें?"*, *"ટામેટાના પાકમાં પાન સુકાઈ રહ્યા છે તો કઈ દવાનો છંટકાવ કરવો?"*).
