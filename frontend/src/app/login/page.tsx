@@ -10,28 +10,29 @@ import type { TranslationKey } from "@/lib/i18n/LanguageContext";
 import { formatNameFromEmail, setUserProfile } from "@/lib/user";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const PASSWORD_SPECIAL_CHAR_PATTERN = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/;
-const PASSWORD_MIN_LENGTH = 8;
 
-function getEmailError(email: string, t: (key: TranslationKey) => string): string | undefined {
-  if (!email.trim()) {
-    return t("login.error.emailRequired");
+function getLoginIdError(inputVal: string, t: (key: TranslationKey) => string): string | undefined {
+  const clean = inputVal.trim();
+  if (!clean) {
+    return t("login.error.emailRequired") || "Email or Mobile Number is required";
   }
-  if (!EMAIL_PATTERN.test(email)) {
-    return t("login.error.emailInvalid");
+  const digits = clean.replace(/[^0-9]/g, "");
+  const isPhone = digits.length >= 10;
+  if (!isPhone && !EMAIL_PATTERN.test(clean)) {
+    return "Please enter a valid email address or 10-digit mobile number";
   }
   return undefined;
 }
 
-function getPasswordError(password: string, t: (key: TranslationKey) => string): string | undefined {
+function getPasswordError(password: string, mode: "login" | "signup", t: (key: TranslationKey) => string): string | undefined {
   if (!password) {
-    return t("login.error.passwordRequired");
+    return t("login.error.passwordRequired") || "Password is required";
   }
-  if (password.length < PASSWORD_MIN_LENGTH) {
-    return t("login.error.passwordTooShort");
+  if (mode === "signup" && password.length < 6) {
+    return "Password must be at least 6 characters";
   }
-  if (!PASSWORD_SPECIAL_CHAR_PATTERN.test(password)) {
-    return t("login.error.passwordNeedsSpecialChar");
+  if (mode === "login" && password.length < 4) {
+    return "Password is too short";
   }
   return undefined;
 }
@@ -115,35 +116,38 @@ export default function LoginPage() {
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            const emailError = getEmailError(email, t);
-            const passwordError = getPasswordError(password, t);
-            if (emailError || passwordError) {
-              setErrors({ email: emailError, password: passwordError });
+            const idError = getLoginIdError(email, t);
+            const passwordError = getPasswordError(password, mode, t);
+            if (idError || passwordError) {
+              setErrors({ email: idError, password: passwordError });
               return;
             }
             setErrors({});
             setIsLoading(true);
 
             try {
-              const displayName = formatNameFromEmail(email);
+              const cleanInput = email.trim();
+              const digits = cleanInput.replace(/[^0-9]/g, "");
+              const isPhone = digits.length >= 10;
+              const displayName = isPhone ? `Farmer (${digits.slice(-4)})` : formatNameFromEmail(cleanInput);
 
               if (mode === "signup") {
                 // Register new farmer in SQLite DB
-                const user = await AgriSmartAPI.register({
-                  full_name: displayName,
-                  email: email.trim().toLowerCase(),
-                  password,
-                });
-                setUserProfile({ email: user.email || email, name: user.full_name || displayName });
+                const user = await AgriSmartAPI.register(
+                  isPhone
+                    ? { full_name: displayName, phone_number: cleanInput, password }
+                    : { full_name: displayName, email: cleanInput.toLowerCase(), password }
+                );
+                setUserProfile({ email: user.email || cleanInput, name: user.full_name || displayName });
                 router.push("/onboarding/language");
               } else {
                 // Authenticate existing farmer against SQLite DB
-                const user = await AgriSmartAPI.login(email.trim().toLowerCase(), password);
-                setUserProfile({ email: user.email || email, name: user.full_name || displayName });
+                const user = await AgriSmartAPI.login(cleanInput, password);
+                setUserProfile({ email: user.email || cleanInput, name: user.full_name || displayName });
                 router.push("/dashboard");
               }
             } catch (err: any) {
-              const msg = err?.message || (mode === "login" ? "Invalid email or password. Please try again or create an account." : "Registration failed. This email may already exist.");
+              const msg = err?.message || (mode === "login" ? "Invalid email/mobile or password. Please try again." : "Registration failed. Account may already exist.");
               setErrors({ general: msg });
             } finally {
               setIsLoading(false);
