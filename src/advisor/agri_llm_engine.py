@@ -25,6 +25,12 @@ class LocalAgriLLM:
         self.tokenizer = None
         self.model = None
         self.is_loaded = False
+        
+        # Allow running in ultra-lightweight RAG mode without loading Flan-T5
+        if os.environ.get("DISABLE_LOCAL_LLM", "0").lower() in ["1", "true", "yes"]:
+            print("[AgriLLM] Local Flan-T5 LLM disabled via DISABLE_LOCAL_LLM=1. Running in ultra-lightweight RAG & Vision mode.")
+            return
+            
         self._load_model()
 
     def _load_model(self):
