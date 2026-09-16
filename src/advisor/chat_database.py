@@ -311,18 +311,46 @@ seed_default_data()
 class UserDB:
     @staticmethod
     def register(full_name: str, phone_number: Optional[str] = None, email: Optional[str] = None, password: Optional[str] = None, language: str = 'en') -> Dict[str, Any]:
-        user_id = f"usr_{uuid.uuid4().hex[:10]}"
         now = datetime.now().isoformat()
         pwd_hash = hash_password(password) if password else None
         
         conn = get_db_connection()
+        clean_email = email.strip().lower() if email else None
+        clean_phone = phone_number.strip() if phone_number else None
+        
+        # Check if user already exists with this phone or email
+        existing = None
+        if clean_email:
+            existing = conn.execute("SELECT id FROM users WHERE LOWER(email) = ?", (clean_email,)).fetchone()
+        if not existing and clean_phone:
+            digits = "".join(filter(str.isdigit, clean_phone))
+            last10 = digits[-10:] if len(digits) >= 10 else clean_phone
+            existing = conn.execute("SELECT id FROM users WHERE phone_number LIKE ?", (f"%{last10}",)).fetchone()
+            
+        if existing:
+            user_id = existing["id"]
+            with conn:
+                if pwd_hash:
+                    conn.execute(
+                        "UPDATE users SET password_hash = ?, full_name = ?, preferred_language = ?, updated_at = ? WHERE id = ?",
+                        (pwd_hash, full_name, language, now, user_id)
+                    )
+                else:
+                    conn.execute(
+                        "UPDATE users SET full_name = ?, preferred_language = ?, updated_at = ? WHERE id = ?",
+                        (full_name, language, now, user_id)
+                    )
+            conn.close()
+            return UserDB.get_user(user_id)
+            
+        user_id = f"usr_{uuid.uuid4().hex[:10]}"
         with conn:
             conn.execute(
                 """
                 INSERT INTO users (id, phone_number, email, password_hash, full_name, preferred_language, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (user_id, phone_number, email, pwd_hash, full_name, language, now, now)
+                (user_id, clean_phone, clean_email, pwd_hash, full_name, language, now, now)
             )
         conn.close()
         return UserDB.get_user(user_id)
