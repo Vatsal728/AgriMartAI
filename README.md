@@ -2,12 +2,12 @@
 **Smart India Hackathon (SIH 2026) | L. J. Institute of Engineering and Technology**
 
 [![Live Demo Video](https://img.shields.io/badge/🎬_YouTube-Live_Video_Demo-red.svg?logo=youtube&logoColor=white)](https://youtu.be/Khd-8exciPM)
+[![Live Render API](https://img.shields.io/badge/Render_API-Live_Online-22c55e.svg?logo=render&logoColor=white)](https://agrismart-api-4rmk.onrender.com/health)
+[![API Docs](https://img.shields.io/badge/Swagger_Docs-API_Endpoints-0f766e.svg?logo=fastapi&logoColor=white)](https://agrismart-api-4rmk.onrender.com/docs)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-15803d.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Next.js 16](https://img.shields.io/badge/Frontend-Next.js_16_React_19-black.svg?logo=next.js&logoColor=white)](frontend/)
-[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-0f766e.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.5_CUDA_12.8-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Database](https://img.shields.io/badge/Database-SQLite_WAL-b45309.svg?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
-[![Coverage](https://img.shields.io/badge/QA_Pass_Rate-100%25-22c55e.svg)](http://localhost:8080/health)
 [![Hugging Face](https://img.shields.io/badge/🤗_HuggingFace-vatsaldesai%2Fagri--flan--t5--expert-FFD21E.svg)](https://huggingface.co/vatsaldesai/agri-flan-t5-expert)
 
 ---
