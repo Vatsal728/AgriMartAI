@@ -9,3 +9,5 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: DISABLE_LOCAL_LLM
+        value: "1"
