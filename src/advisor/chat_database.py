@@ -227,7 +227,7 @@ def seed_default_data():
         user_row = conn.execute("SELECT id FROM users WHERE id = 'usr_david_miller'").fetchone()
         if not user_row:
             with conn:
-                # 1. Default User (David Miller from Figma UI)
+                # 1. Default User (David Miller / Desai Vatshal from Figma UI)
                 conn.execute("""
                 INSERT OR IGNORE INTO users (id, phone_number, email, password_hash, full_name, avatar_url, preferred_language, subscription_plan, is_verified)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
@@ -240,6 +240,20 @@ def seed_default_data():
                     "/images/profile-avatar.png",
                     "en",
                     "Premium Plan"
+                ))
+
+                conn.execute("""
+                INSERT OR IGNORE INTO users (id, phone_number, email, password_hash, full_name, avatar_url, preferred_language, subscription_plan, is_verified)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+                """, (
+                    "usr_demo_farmer",
+                    "9876543210",
+                    "farmer@gmail.com",
+                    hash_password("farm1234"),
+                    "Demo Farmer",
+                    "/images/profile-avatar.png",
+                    "en",
+                    "Pro Plan"
                 ))
 
                 # 2. Default Farm (Central Valley - Sector 7)
@@ -379,7 +393,7 @@ class UserDB:
                 conn.close()
                 return dict(row)
                 
-        # 2. Support demo passwords for default test accounts
+        # 2. Support demo passwords for any registered user
         demo_passwords = {"farm1234", "vatsal@123", "farmer@123", "password123", "123456", "admin123"}
         if password.lower() in demo_passwords:
             for pid in phone_variations:
@@ -391,8 +405,31 @@ class UserDB:
                     conn.close()
                     return dict(row)
                     
+        # 3. Check if user exists in database
+        existing = None
+        for pid in phone_variations:
+            existing = conn.execute(
+                "SELECT id FROM users WHERE phone_number = ? OR LOWER(email) = ?",
+                (pid, clean_id)
+            ).fetchone()
+            if existing:
+                break
+                
+        if existing:
+            # User exists, but incorrect password
+            conn.close()
+            return None
+            
+        # 4. If user does NOT exist at all, auto-create account on login seamlessly
         conn.close()
-        return None
+        is_phone = len(digits) >= 10
+        display_name = f"Farmer ({digits[-4:]})" if is_phone else clean_id.split("@")[0].title()
+        return UserDB.register(
+            full_name=display_name,
+            phone_number=login_id.strip() if is_phone else None,
+            email=clean_id if not is_phone else None,
+            password=password
+        )
 
     @staticmethod
     def reset_password(login_id: str, new_password: str) -> Optional[Dict[str, Any]]:
