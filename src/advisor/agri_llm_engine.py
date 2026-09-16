@@ -26,9 +26,12 @@ class LocalAgriLLM:
         self.model = None
         self.is_loaded = False
         
-        # Allow running in ultra-lightweight RAG mode without loading Flan-T5
-        if os.environ.get("DISABLE_LOCAL_LLM", "0").lower() in ["1", "true", "yes"]:
-            print("[AgriLLM] Local Flan-T5 LLM disabled via DISABLE_LOCAL_LLM=1. Running in ultra-lightweight RAG & Vision mode.")
+        # Auto-detect Render, free cloud tiers, or explicit DISABLE_LOCAL_LLM flag
+        is_render_cloud = bool(os.environ.get("RENDER") or os.environ.get("RENDER_SERVICE_ID") or os.environ.get("DISABLE_LOCAL_LLM", "0").lower() in ["1", "true", "yes"])
+        
+        # If running on cloud without GPU (CPU only) or explicit disable flag, run lightweight RAG mode to fit in < 512MB RAM
+        if is_render_cloud or (self.device == "cpu" and os.environ.get("ENABLE_CPU_LLM", "0") != "1"):
+            print("[AgriLLM] Running in ultra-lightweight RAG & Vision mode (< 350MB RAM). Skipping heavy Flan-T5 weights.")
             return
             
         self._load_model()
