@@ -55,6 +55,7 @@ from src.api.schemas import (
     SessionDetailResponse,
     UserRegisterRequest,
     UserLoginRequest,
+    ResetPasswordRequest,
     SendOtpRequest,
     VerifyOtpRequest,
     LanguageUpdateRequest,
@@ -157,6 +158,14 @@ def login_user(req: UserLoginRequest):
     user = UserDB.authenticate(req.login_id, req.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid phone number, email, or password.")
+    return user
+
+@app.post("/api/auth/reset-password", response_model=UserResponse)
+def reset_password(req: ResetPasswordRequest):
+    """Directly resets or creates password in database for farmer"""
+    user = UserDB.reset_password(req.login_id, req.new_password)
+    if not user:
+        raise HTTPException(status_code=404, detail="Could not reset password.")
     return user
 
 @app.post("/api/auth/otp/send")

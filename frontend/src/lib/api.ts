@@ -49,7 +49,13 @@ export const AgriSmartAPI = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ login_id: loginId, password }),
     }),
-  register: (data: { full_name: string; email: string; password?: string; phone_number?: string; language?: string }) =>
+  resetPassword: (loginId: string, newPassword: string) =>
+    apiFetch<User>("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ login_id: loginId, new_password: newPassword }),
+    }),
+  register: (data: { full_name: string; email?: string; password?: string; phone_number?: string; language?: string }) =>
     apiFetch<User>("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

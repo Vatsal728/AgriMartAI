@@ -367,6 +367,61 @@ class UserDB:
         return None
 
     @staticmethod
+    def reset_password(login_id: str, new_password: str) -> Optional[Dict[str, Any]]:
+        conn = get_db_connection()
+        clean_id = login_id.strip().lower()
+        
+        phone_variations = [clean_id, login_id.strip()]
+        digits = "".join(filter(str.isdigit, clean_id))
+        if len(digits) >= 10:
+            last10 = digits[-10:]
+            phone_variations.extend([last10, f"+91{last10}", f"91{last10}", f"0{last10}"])
+            
+        pwd_hash = hash_password(new_password)
+        now = datetime.now().isoformat()
+        
+        found_id = None
+        for pid in phone_variations:
+            row = conn.execute(
+                "SELECT id FROM users WHERE phone_number = ? OR LOWER(email) = ?",
+                (pid, clean_id)
+            ).fetchone()
+            if row:
+                found_id = row["id"]
+                break
+                
+        if found_id:
+            with conn:
+                conn.execute(
+                    "UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?",
+                    (pwd_hash, now, found_id)
+                )
+            conn.close()
+            return UserDB.get_user(found_id)
+        else:
+            # If user not found, create new farmer account with this password
+            is_phone = len(digits) >= 10
+            new_id = f"usr_{uuid.uuid4().hex[:10]}"
+            with conn:
+                conn.execute(
+                    """
+                    INSERT INTO users (id, phone_number, email, password_hash, full_name, preferred_language, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, 'en', ?, ?)
+                    """,
+                    (
+                        new_id,
+                        login_id.strip() if is_phone else None,
+                        clean_id if not is_phone else None,
+                        pwd_hash,
+                        f"Farmer ({digits[-4:]})" if is_phone else clean_id.split("@")[0].title(),
+                        now,
+                        now
+                    )
+                )
+            conn.close()
+            return UserDB.get_user(new_id)
+
+    @staticmethod
     def create_otp(phone_number: str) -> str:
         otp_id = f"otp_{uuid.uuid4().hex[:8]}"
         otp_code = "123456" # Default test OTP for development / SMS gateway integration

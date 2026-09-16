@@ -100,6 +100,10 @@ class UserLoginRequest(BaseModel):
     login_id: str = Field(..., description="Phone number or email")
     password: str
 
+class ResetPasswordRequest(BaseModel):
+    login_id: str = Field(..., description="Phone number or email")
+    new_password: str
+
 class SendOtpRequest(BaseModel):
     phone_number: str
 
