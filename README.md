@@ -143,12 +143,20 @@ Open your browser at: **`http://localhost:3000`** (Frontend) and **`http://local
 
 ---
 
-## 🔑 Default Test Credentials
+## 🔑 Default Test Credentials & Instant Access
 
-| Email / Phone | Password | Name | Role |
+The platform supports flexible login with **10-digit Mobile Numbers** (with/without country code) or **Email Addresses**, as well as instant on-the-fly registration:
+
+| Email / Mobile Number | Password | Account Profile | Quick Access |
 | :--- | :--- | :--- | :--- |
-| `desaivatshal72839@gmail.com` | `Vatsal@123` | **Vatsal Desai** | Farm Owner (Premium Plan) |
-| `david.miller@agrismart.ai` | `Farmer@123` | **David Miller** | Farm Manager (Standard) |
+| `9876543210` | `farm1234` | **Demo Farmer** (Pro Plan) | Click **Demo Mobile** on Login |
+| `farmer@gmail.com` | `farm1234` | **Demo Farmer** (Pro Plan) | Click **Demo Email** on Login |
+| `desaivatshal72839@gmail.com` | `farm1234` | **Vatsal Desai** (Premium Plan) | Farm Owner Account |
+| `david.miller@agrismart.ai` | `farm1234` | **David Miller** (Standard) | Farm Manager Account |
+
+> 💡 **Seamless Farmer Access:**
+> - **Direct Sign-In**: Enter *any* mobile number or email with a password on the login screen to automatically create an account and log in.
+> - **Direct Password Reset**: Click **"Forgot password?"** to update any account password in the SQLite database instantly without third-party SMS delays.
 
 ---
 
@@ -160,7 +168,9 @@ Open your browser at: **`http://localhost:3000`** (Frontend) and **`http://local
 | **Vision** | `POST` | `/predict` | Low-latency pure vision inference (< 40ms on GPU) |
 | **Chat** | `POST` | `/chat` | Context-aware multi-turn conversational agronomist |
 | **Sessions** | `GET/POST`| `/api/sessions` | Lists and creates persistent consultation threads |
-| **Auth** | `POST` | `/api/auth/login` | Authenticates farmer credentials against SQLite store |
+| **Auth Login** | `POST` | `/api/auth/login` | Authenticates farmer credentials (mobile/email) against SQLite store |
+| **Auth Register** | `POST` | `/api/auth/register` | Registers new farmer profile with preferred language and acreage |
+| **Password Reset**| `POST` | `/api/auth/reset-password` | Direct password reset and instant database synchronization |
 | **Auth Profile** | `GET` | `/api/auth/me` | Fetches active profile by email or user_id |
 | **Language** | `POST` | `/api/auth/language` | Updates language preferences (*English, Hindi, Gujarati, Marathi*) |
 | **Farms** | `GET/POST`| `/api/farms` | Farm profile management with acreage & GPS |
